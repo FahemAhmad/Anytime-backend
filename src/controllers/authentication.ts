@@ -130,7 +130,9 @@ export const verifyOTP = async (
     if (!email || !otp)
       return res.status(400).json({ message: "Invalid Data" });
 
-    const user: any = await getUsersByEmail(email);
+    const user: any = await getUsersByEmail(email).select(
+      "+authentication.salt +authentication.password"
+    );
 
     if (!user) return res.status(404).json({ message: "User Not Found" });
 
@@ -143,6 +145,12 @@ export const verifyOTP = async (
       return res.status(403).json({
         message: "Invalid otp",
       });
+
+    const salt = random();
+    user.authentication.sessionToken = authentication(
+      salt,
+      user._id.toString()
+    );
 
     user.isVerified = true;
     user.isOtpVerified = true;
