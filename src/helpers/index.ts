@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import moment from "moment";
 
 const SECRET = "secret";
 const OTP_EXPIRY_TIME = 2;
@@ -26,4 +27,19 @@ export const isOtpExpired = (otp_expiry_time: Date): boolean => {
 
 export const isOtpCorrect = (userOtp: number, inputOtp: number): boolean => {
   return userOtp === inputOtp;
+};
+
+export const getSessionTimestamp = (
+  date: string,
+  time: string
+): moment.Moment => {
+  return moment(`${date} ${time}`, "DD-MM-YYYY h:mm A");
+};
+
+export const addDuration = (
+  timestamp: moment.Moment,
+  duration: string
+): moment.Moment => {
+  const [value, unit] = duration.match(/(\d+)(m|h)/i).slice(1);
+  return (timestamp.clone() as any).add(parseInt(value), unit);
 };

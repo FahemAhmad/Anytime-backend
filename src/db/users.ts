@@ -1,3 +1,4 @@
+import { saveUserDetailsToRedis } from "../lib/redisService";
 import mongoose from "mongoose";
 
 const UserSchema = new mongoose.Schema({
@@ -55,18 +56,71 @@ const UserSchema = new mongoose.Schema({
     default: "email",
     enum: ["email", "google", "fb"],
   },
+  conversationIds: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Conversation",
+    },
+  ],
+  seenMessagesId: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Message",
+    },
+  ],
+  messages: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Message",
+    },
+  ],
+  ratings: {
+    type: String,
+    default: "N/A",
+  },
+  ratedCount: {
+    type: Number,
+    default: 0,
+  },
 });
 
 export const UserModel = mongoose.model("User", UserSchema);
+
 export const getUsers = () => UserModel.find();
 export const getUsersByEmail = (email: string) => UserModel.findOne({ email });
+
+export const searchUserByEmail = (email: string, currentUserId: string) =>
+  UserModel.find(
+    {
+      _id: { $ne: currentUserId }, // Exclude the current user by their ID
+      email: { $regex: email, $options: "i" }, // Case-insensitive email search
+    },
+    {
+      _id: 1,
+      firstName: 1,
+      lastName: 1,
+      email: 1,
+      avatarUrl: 1,
+    }
+  );
+
 export const getUserBySessionToken = (sessionToken: string) =>
   UserModel.findOne({
     "authentication.sessionToken": sessionToken,
   });
 export const getUserById = (id: string) => UserModel.findById(id);
 export const createUser = (values: Record<string, any>) =>
-  new UserModel(values).save().then((user) => user.toObject());
+  new UserModel(values).save().then((user) => {
+    const userObject = user.toObject();
+
+    saveUserDetailsToRedis(userObject._id.toString(), userObject).catch(
+      (err) => {
+        console.error("Failed to save user details to Redis:", err);
+      }
+    );
+    return userObject;
+  });
+
 export const deleteUserById = (id: string) =>
   UserModel.findOneAndDelete({ _id: id });
 export const updateUserById = (id: string, values: Record<string, any>) =>
@@ -90,3 +144,5 @@ export const createNewOtpByExpiry = async (
   });
   return !!result;
 };
+
+//Existing conversations

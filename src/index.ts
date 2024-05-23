@@ -7,12 +7,17 @@ import cors from "cors";
 import mongoose from "mongoose";
 import router from "./router";
 import morgan from "morgan";
+import { createClient } from "redis";
 
+const REDIS_URL = "redis://localhost:6379";
 const app = express();
 
 app.use(
   cors({
     credentials: true,
+    origin: "*",
+    methods: "GET,PUT,POST,DELETE",
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
@@ -23,8 +28,23 @@ app.use(bodyParser.json());
 
 const server = http.createServer(app);
 
-server.listen(8080, () => {
-  console.log("server running on port 8080");
+export const redisClient = createClient({
+  url: "rediss://default:AbIiAAIncDExYjU0ODQ0MDE4OWM0MTdiOGE0NDNkMzc2YjYxYmY4MHAxNDU2MDI@right-camel-45602.upstash.io:6379",
+  socket: {
+    reconnectStrategy: (retries) => Math.min(retries * 50, 2000), // Retry strategy with exponential backoff
+    keepAlive: 10000, // TCP keepalive in milliseconds
+  },
+});
+
+redisClient.on("error", (err) => console.log("Redis Client Error", err));
+redisClient.on("connect", () => console.log("Redis connected"));
+
+(async () => {
+  await redisClient.connect();
+})();
+
+server.listen(8085, () => {
+  console.log("server running on port 8085");
 });
 
 const MONGO_URL =

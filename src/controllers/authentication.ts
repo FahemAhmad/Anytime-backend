@@ -8,6 +8,10 @@ import {
 import express from "express";
 import { authentication, generateOTP, isOtpExpired, random } from "../helpers";
 import { sendOTP } from "../helpers/mail";
+import {
+  getUserDetailsFromRedis,
+  saveUserDetailsToRedis,
+} from "../lib/redisService";
 
 export const register = async (req: express.Request, res: express.Response) => {
   try {
@@ -53,8 +57,7 @@ export const register = async (req: express.Request, res: express.Response) => {
       otpExpiryTime,
     });
 
-    console.log("user", user);
-
+    await saveUserDetailsToRedis(user._id.toString(), user);
     delete user["otp"];
     return res
       .status(200)
@@ -103,10 +106,12 @@ export const login = async (req: express.Request, res: express.Response) => {
 
     await user.save();
 
+    //check if user exists else save it to redis
+    const r = await getUserDetailsFromRedis(user._id.toString());
+    if (!r) await saveUserDetailsToRedis(user._id.toString(), user);
     return res
       .status(200)
-      .json({ ...user, sessionToken: user.authentication.sessionToken })
-      .end();
+      .json({ ...user, sessionToken: user.authentication.sessionToken });
   } catch (err) {
     console.log("err", err);
     console.log("reached phase 5");
@@ -134,7 +139,6 @@ export const verifyOTP = async (
         message: "Otp is expired",
       });
 
-    console.log("user", user.otp);
     if (user.otp !== Number(otp))
       return res.status(403).json({
         message: "Invalid otp",
@@ -147,7 +151,6 @@ export const verifyOTP = async (
 
     return res.status(200).json(user).end();
   } catch (err) {
-    console.log("err", err);
     return res.status(400).json({
       message: "Error connecting to server",
     });
@@ -272,8 +275,6 @@ export const oauthLogin = async (
     }
 
     if (existingUser) return res.status(200).json(existingUser);
-
-    console.log("userData", userData);
 
     let username = "",
       firstName = "",
