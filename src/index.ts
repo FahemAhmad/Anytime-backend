@@ -9,7 +9,6 @@ import router from "./router";
 import morgan from "morgan";
 import { createClient } from "redis";
 
-const REDIS_URL = "redis://localhost:6379";
 const app = express();
 
 app.use(
@@ -43,7 +42,7 @@ redisClient.on("connect", () => console.log("Redis connected"));
   await redisClient.connect();
 })();
 
-server.listen(8085, () => {
+server.listen(() => {
   console.log("server running on port 8085");
 });
 
