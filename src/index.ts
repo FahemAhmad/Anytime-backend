@@ -42,7 +42,7 @@ redisClient.on("connect", () => console.log("Redis connected"));
   await redisClient.connect();
 })();
 
-server.listen(() => {
+server.listen(8085, () => {
   console.log("server running on port 8085");
 });
 
