@@ -7,7 +7,6 @@ import {
 } from "../db/conversation";
 import express from "express";
 import {
-  getConversationDetailsFromRedis,
   getUserDetailsFromRedis,
   saveConversationDetailsToRedis,
 } from "../lib/redisService";
@@ -98,6 +97,8 @@ export const createConversation = async (
       req.identity._id,
       userIds[0]
     );
+
+    console.log("existingConver", existingConversations.length);
     const singleConversations = existingConversations[0];
 
     // If the conversation already exists, return the existing conversation
@@ -190,6 +191,45 @@ export const getConversationByConversationId = async (
     } else {
       return res.status(401).json({ error: "Unauthorized" });
     }
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+};
+
+export const deleteConversation = async (
+  req: express.Request & { identity: any },
+  res: express.Response
+) => {
+  try {
+    const { conversationId } = req.body;
+
+    if (!conversationId) {
+      return res.status(400).json({ message: "Conversation id is required" });
+    }
+
+    const conversation = await getConversationById(conversationId);
+
+    if (!conversation) {
+      return res.status(404).json({ message: "Conversation not found" });
+    }
+
+    if (conversation) {
+      //remove from userIds
+      conversation.userIds.forEach((user) => {
+        if (user._id.toString() === req.identity._id.toString()) {
+          //remove from userIds
+          const index = conversation.userIds.indexOf(user);
+          if (index > -1) {
+            conversation.userIds.splice(index, 1);
+          }
+        }
+      });
+    }
+
+    await conversation.save();
+    return res
+      .status(200)
+      .json({ message: "Conversation deleted successfully" });
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }

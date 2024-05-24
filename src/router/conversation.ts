@@ -4,6 +4,7 @@ import {
   createConversation,
   getConversationByConversationId,
   getUserConversations,
+  deleteConversation,
 } from "../controllers/conversation";
 
 export default (router: express.Router) => {
@@ -14,4 +15,5 @@ export default (router: express.Router) => {
     getConversationByConversationId
   );
   router.post(`/conversations`, isAuthenticated, createConversation);
+  router.put(`/conversations/remove`, isAuthenticated, deleteConversation);
 };

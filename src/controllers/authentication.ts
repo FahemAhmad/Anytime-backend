@@ -340,3 +340,57 @@ export const oauthLogin = async (
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
+export const resendOtp = async (
+  req: express.Request,
+  res: express.Response
+) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
+
+    const user = await getUsersByEmail(email);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (user && user.provider !== "email") {
+      return res
+        .status(409)
+        .json({ message: "User is registered with other provider" });
+    }
+
+    const otp = generateOTP();
+
+    const expiryDurationInMinutes = 2;
+    const otpExpiryTime = new Date(
+      Date.now() + expiryDurationInMinutes * 60000
+    );
+    user.otpExpiryTime = otpExpiryTime;
+
+    user.otp = Number(otp);
+
+    try {
+      await sendOTP(email, otp);
+    } catch (error) {
+      console.error("Error sending OTP email:", error);
+      return res.status(500).json({ message: "Error sending OTP email" });
+    }
+
+    // Save updated user details to Redis
+    await saveUserDetailsToRedis(user._id.toString(), user);
+    await user.save();
+
+    return res
+      .status(200)
+      .json({ ...user, otpExpiryDuration: expiryDurationInMinutes })
+      .end();
+  } catch (err) {
+    console.error("Error in resendOtp:", err);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
