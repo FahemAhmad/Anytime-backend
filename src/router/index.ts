@@ -7,6 +7,9 @@ import pusher from "./pusher";
 import session from "./session";
 import comment from "./comment";
 import rating from "./rating";
+import lesson from "./lesson";
+import payment from "./payment";
+import booking from "./booking";
 
 const router = express.Router();
 
@@ -19,6 +22,9 @@ export default (): express.Router => {
   session(router);
   comment(router);
   rating(router);
+  lesson(router);
+  payment(router);
+  booking(router);
 
   return router;
 };

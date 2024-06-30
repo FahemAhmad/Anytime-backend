@@ -9,6 +9,9 @@ import router from "./router";
 import morgan from "morgan";
 import { createClient } from "redis";
 
+import "dotenv/config";
+require("dotenv").config();
+
 const app = express();
 
 app.use(
