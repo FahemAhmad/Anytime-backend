@@ -120,9 +120,6 @@ export const addFeedback = async (
     };
 
     await bookings.save();
-
-    //WIP : Update user rating as well.
-    console.log("bookings", bookings.tutorId);
     const tutor = await getUserById(bookings.tutorId as any);
 
     if (tutor.ratings === "N/A") {
@@ -131,7 +128,6 @@ export const addFeedback = async (
     } else {
       const currentRating = parseInt(tutor?.ratings || "0");
       let totalRating = currentRating * tutor.ratedCount;
-
       totalRating += parseInt(req.body.rating);
       tutor.ratings = totalRating.toString();
       tutor.ratedCount = tutor.ratedCount + 1;

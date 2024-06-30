@@ -1,4 +1,5 @@
 import {
+  followUnfollowUser,
   getAllUsers,
   getTutors,
   searchUsersByEmail,
@@ -10,4 +11,5 @@ export default (router: express.Router) => {
   router.get(`/users`, isAuthenticated, getAllUsers);
   router.get(`/users/search`, isAuthenticated, searchUsersByEmail);
   router.get(`/users/tutors`, isAuthenticated, getTutors);
+  router.put(`/users/follow`, isAuthenticated, followUnfollowUser);
 };

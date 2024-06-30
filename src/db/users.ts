@@ -100,6 +100,13 @@ const UserSchema = new mongoose.Schema({
       ref: "Transaction",
     },
   ],
+  followers: { type: Number, default: 0 },
+  following: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+  ],
 });
 
 export const UserModel = mongoose.model("User", UserSchema);
