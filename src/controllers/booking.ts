@@ -15,12 +15,19 @@ export const bookASpot = async (
     const newBooking = await createNewBookingDb({
       ...body,
       userId: req.identity._id,
+      tutorId: req.body.tutorId,
     });
 
     const userDetails = await getUserById(req.identity._id);
+    const tutor = await getUserById(req.body.tutorId);
 
     if (userDetails.bookings) userDetails.bookings.push(newBooking._id);
     else userDetails.bookings = [newBooking._id];
+
+    if (tutor.bookings) tutor.bookings.push(newBooking._id);
+    else tutor.bookings = [newBooking._id];
+
+    await tutor.save();
     await userDetails.save();
 
     return res.status(200).json(newBooking);
@@ -115,6 +122,22 @@ export const addFeedback = async (
     await bookings.save();
 
     //WIP : Update user rating as well.
+    console.log("bookings", bookings.tutorId);
+    const tutor = await getUserById(bookings.tutorId as any);
+
+    if (tutor.ratings === "N/A") {
+      tutor.ratings = req.body.rating;
+      tutor.ratedCount = 1;
+    } else {
+      const currentRating = parseInt(tutor?.ratings || "0");
+      let totalRating = currentRating * tutor.ratedCount;
+
+      totalRating += parseInt(req.body.rating);
+      tutor.ratings = totalRating.toString();
+      tutor.ratedCount = tutor.ratedCount + 1;
+    }
+
+    await tutor.save();
 
     return res.status(200).json({ success: true });
   } catch (err) {

@@ -10,6 +10,10 @@ const BookingSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "User", // user who booked the lesson
   },
+  tutorId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+  },
   dateOfLesson: String,
   timeOfLesson: {
     type: String,
