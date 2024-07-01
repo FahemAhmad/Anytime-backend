@@ -127,8 +127,10 @@ export const addFeedback = async (
       tutor.ratedCount = 1;
     } else {
       const currentRating = parseInt(tutor?.ratings || "0");
+
       let totalRating = currentRating * tutor.ratedCount;
       totalRating += parseInt(req.body.rating);
+      totalRating = totalRating / (tutor.ratedCount + 1);
       tutor.ratings = totalRating.toString();
       tutor.ratedCount = tutor.ratedCount + 1;
     }
