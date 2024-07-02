@@ -4,7 +4,11 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "pm2 start src/index.ts --env production",
+    "start": "npm-run-all --serial delete:all start:prod start:www stop:init",
+    "delete:all": "pm2 delete all",
+    "start:prod": "pm2 start src/index.ts --env production -f",
+    "start:www": "pm2 start bin/www -i 0",
+    "stop:init": "pm2 stop 0",
     "dev": "nodemon",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -12,6 +16,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "npm-run-all": "^4.1.5",
     "ts-node": "^10.9.2",
     "typescript": "^5.4.5"
   },
