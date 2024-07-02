@@ -4,11 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "npm-run-all --serial delete:all start:prod start:www stop:init",
-    "delete:all": "pm2 delete all",
-    "start:prod": "pm2 start src/index.ts --env production -f",
-    "start:www": "pm2 start bin/www -i 0",
-    "stop:init": "pm2 stop 0",
+    "start": "pm2 start src/index.ts --no-autorestart",
     "dev": "nodemon",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
