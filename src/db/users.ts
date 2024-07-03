@@ -100,7 +100,12 @@ const UserSchema = new mongoose.Schema({
       ref: "Transaction",
     },
   ],
-  followers: { type: Number, default: 0 },
+  followers: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+  ],
   following: [
     {
       type: mongoose.Schema.Types.ObjectId,

@@ -130,9 +130,12 @@ export const addFeedback = async (
 
       let totalRating = currentRating * tutor.ratedCount;
       totalRating += parseInt(req.body.rating);
+      // console.log("total rating", totalRating);
+      // console.log("total rating 3", totalRating / (tutor.ratedCount + 1));
       totalRating = totalRating / (tutor.ratedCount + 1);
       tutor.ratings = totalRating.toString();
       tutor.ratedCount = tutor.ratedCount + 1;
+      // console.log("total rating 2", tutor.ratedCount);
     }
 
     await tutor.save();

@@ -34,7 +34,6 @@ export const searchUsersByEmail = async (
 ) => {
   try {
     const { email } = req.query;
-    console.log("email");
 
     if (!email) {
       return res.status(400).json({ message: "Email is required" });
@@ -57,10 +56,17 @@ export const getTutors = async (
     //get list of users, who have any lesson that is active and the list should be sorted by user with most lessons
     const users = await UserModel.find({
       lessons: { $exists: true, $not: { $size: 0 } },
-    }).populate({
-      path: "lessons",
-      match: { active: true },
-    });
+    })
+      .populate({
+        path: "lessons",
+        match: { active: true },
+      })
+      .populate({
+        path: "bookings",
+        populate: {
+          path: "userId",
+        },
+      });
 
     const usersWithActiveLessons = users
       .filter((user) => user.lessons.length > 0)
@@ -84,24 +90,33 @@ export const followUnfollowUser = async (
   res: express.Response
 ) => {
   try {
-    // get current user who is following
+    // Get current user who is following
     const id = req.identity._id;
-    const isFollow = req.query.follow;
+    const isFollow = req.query.follow === "true";
 
-    // get user who is being followed
+    // Get user who is being followed
     const userToFollow = req.body.tutor;
 
-    // update follow
+    // Update follow
     const userFollowing = await getUserById(id);
     const userBeingFollowed = await getUserById(userToFollow);
 
     if (isFollow) {
-      if (userFollowing?.following)
-        userFollowing.following.push(userBeingFollowed._id);
-      else userFollowing.following = [userBeingFollowed._id];
+      if (userFollowing?.following) {
+        if (!userFollowing.following.includes(userBeingFollowed._id)) {
+          userFollowing.following.push(userBeingFollowed._id);
+        }
+      } else {
+        userFollowing.following = [userBeingFollowed._id];
+      }
 
-      if (userBeingFollowed.followers) userBeingFollowed.followers += 1;
-      else userBeingFollowed.followers = 1;
+      if (userBeingFollowed?.followers) {
+        if (!userBeingFollowed.followers.includes(userFollowing._id)) {
+          userBeingFollowed.followers.push(userFollowing._id);
+        }
+      } else {
+        userBeingFollowed.followers = [userFollowing._id];
+      }
     } else {
       if (userFollowing?.following) {
         const index = userFollowing.following.indexOf(userBeingFollowed._id);
@@ -110,8 +125,11 @@ export const followUnfollowUser = async (
         }
       }
 
-      if (userBeingFollowed.followers && userBeingFollowed.followers > 0) {
-        userBeingFollowed.followers -= 1;
+      if (userBeingFollowed?.followers) {
+        const index = userBeingFollowed.followers.indexOf(userFollowing._id);
+        if (index > -1) {
+          userBeingFollowed.followers.splice(index, 1);
+        }
       }
     }
 
@@ -122,6 +140,26 @@ export const followUnfollowUser = async (
       success: true,
     });
   } catch (err) {
+    return res.status(500).send({ error: err });
+  }
+};
+
+export const tutorFollowers = async (
+  req: express.Request & { identity: any },
+  res: express.Response
+) => {
+  try {
+    const tutorId = req.query.tutorId;
+
+    const tutorDetails = getUserById(tutorId as string);
+
+    // also populate following
+    const data = await tutorDetails.populate("followers").populate("following");
+    return res
+      .status(200)
+      .send({ followers: data.followers, following: data.following });
+  } catch (err) {
+    console.log("er");
     return res.status(500).send({ error: err });
   }
 };
