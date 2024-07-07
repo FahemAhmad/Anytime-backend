@@ -14,6 +14,7 @@ const BookingSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
   },
+  dateStamp: String,
   dateOfLesson: String,
   timeOfLesson: {
     type: String,
@@ -23,7 +24,14 @@ const BookingSchema = new mongoose.Schema({
   isPaid: { type: Boolean, default: false },
   status: {
     type: String,
-    enum: ["DELIVERED", "PENDING", "REJECTED", "ACCEPTED"],
+    enum: [
+      "DELIVERED",
+      "PENDING",
+      "REJECTED",
+      "ACCEPTED",
+      "COMPLETED",
+      "UNPAID",
+    ],
     default: "PENDING",
   },
   proofOfDelivery: { type: String },

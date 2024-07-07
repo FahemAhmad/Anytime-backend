@@ -14,10 +14,10 @@ import booking from "./booking";
 const router = express.Router();
 
 export default (): express.Router => {
+  conversation(router);
   authentication(router);
   pusher(router);
   users(router);
-  conversation(router);
   messages(router);
   session(router);
   comment(router);

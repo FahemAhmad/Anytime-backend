@@ -86,6 +86,7 @@ export const getBookedLessonsOfuser = async (
         {
           path: "userId",
         },
+        { path: "tutorId" },
       ],
     });
 
