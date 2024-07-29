@@ -28,7 +28,7 @@ const UserSchema = new mongoose.Schema({
     },
     sessionToken: {
       type: String,
-      select: false,
+      // select: false,
     },
   },
   isVerified: {
@@ -112,6 +112,33 @@ const UserSchema = new mongoose.Schema({
       ref: "User",
     },
   ],
+  notifications: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Notification",
+    },
+  ],
+  university: {
+    type: String,
+  },
+  expertise: {
+    type: String,
+  },
+  introduction: {
+    type: String,
+  },
+  savedCards: [
+    {
+      last4: String,
+      brand: String,
+      stripePaymentMethodId: String,
+    },
+  ],
+  stripeCustomerId: String,
+  credits: {
+    type: Number,
+    default: 0,
+  },
 });
 
 export const UserModel = mongoose.model("User", UserSchema);
@@ -122,8 +149,8 @@ export const getUsersByEmail = (email: string) => UserModel.findOne({ email });
 export const searchUserByEmail = (email: string, currentUserId: string) =>
   UserModel.find(
     {
-      _id: { $ne: currentUserId }, // Exclude the current user by their ID
-      email: { $regex: email, $options: "i" }, // Case-insensitive email search
+      _id: { $ne: currentUserId },
+      email: { $regex: email, $options: "i" },
     },
     {
       _id: 1,
@@ -154,9 +181,7 @@ export const createUser = (values: Record<string, any>) =>
 export const deleteUserById = (id: string) =>
   UserModel.findOneAndDelete({ _id: id });
 export const updateUserById = (id: string, values: Record<string, any>) =>
-  UserModel.findByIdAndUpdate(id, values);
-
-// OTP LOGIC
+  UserModel.findByIdAndUpdate(id, values, { new: true });
 
 export const createNewOtpByExpiry = async (
   userId: string,
@@ -175,4 +200,26 @@ export const createNewOtpByExpiry = async (
   return !!result;
 };
 
-//Existing conversations
+export const addCardToUser = (
+  userId: string,
+  cardData: { last4: string; brand: string; stripePaymentMethodId: string }
+) =>
+  UserModel.findByIdAndUpdate(
+    userId,
+    { $push: { savedCards: cardData } },
+    { new: true }
+  );
+
+export const getCardsByUserId = (userId: string) => {
+  return UserModel.findById(userId).select("savedCards");
+};
+
+export const removeCardFromUser = (
+  userId: string,
+  stripePaymentMethodId: string
+) =>
+  UserModel.findByIdAndUpdate(
+    userId,
+    { $pull: { savedCards: { stripePaymentMethodId: stripePaymentMethodId } } },
+    { new: true }
+  );

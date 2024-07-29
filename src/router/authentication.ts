@@ -1,6 +1,7 @@
 import express from "express";
 
 import {
+  changePassword,
   forgotPassword,
   login,
   oauthLogin,
@@ -9,6 +10,7 @@ import {
   updatePassword,
   verifyOTP,
 } from "../controllers/authentication";
+import { isAuthenticated } from "../middlewares";
 
 export default (router: express.Router) => {
   router.post(`/auth/sign-up`, register);
@@ -18,4 +20,5 @@ export default (router: express.Router) => {
   router.post("/auth/forgot-password", forgotPassword);
   router.put("/auth/update-password", updatePassword);
   router.post("/auth/providers/:providerName", oauthLogin);
+  router.put("/auth/change-password", isAuthenticated, changePassword);
 };

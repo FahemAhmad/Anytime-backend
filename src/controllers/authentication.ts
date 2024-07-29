@@ -2,6 +2,7 @@ import {
   UserModel,
   createNewOtpByExpiry,
   createUser,
+  getUserById,
   getUsersByEmail,
   updateUserById,
 } from "../db/users";
@@ -392,5 +393,51 @@ export const resendOtp = async (
   } catch (err) {
     console.error("Error in resendOtp:", err);
     return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const changePassword = async (
+  req: express.Request & { identity: any },
+  res: express.Response
+) => {
+  try {
+    const { oldPassword, newPassword } = req.body;
+    const userId = req.identity._id;
+
+    if (!oldPassword || !newPassword) {
+      return res.status(400).json({ message: "Invalid Data" });
+    }
+
+    const user: any = await getUserById(userId).select(
+      "+authentication.salt +authentication.password"
+    );
+
+    if (!user) {
+      return res.status(404).json({ message: "User Not Found" });
+    }
+
+    // Verify old password
+    const oldPasswordHash = authentication(
+      user.authentication.salt,
+      oldPassword
+    );
+    if (user.authentication.password !== oldPasswordHash) {
+      return res.status(400).json({ message: "Current password is incorrect" });
+    }
+
+    // Update password
+    user.authentication.password = authentication(
+      user.authentication.salt,
+      newPassword
+    );
+
+    await user.save();
+
+    return res.status(200).json({ message: "Password changed successfully" });
+  } catch (err) {
+    console.log("err", err);
+    return res.status(400).json({
+      message: "Error connecting to server",
+    });
   }
 };

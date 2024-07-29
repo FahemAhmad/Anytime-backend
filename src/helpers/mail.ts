@@ -7,7 +7,7 @@ const transporter = nodemailer.createTransport({
   secure: false, // true for 465, false for other ports
   auth: {
     user: "faheemahmad0108@gmail.com", // Your email address
-    pass: "kvcwxrnboptwvmeg", // Your email password
+    pass: "dunoxtnidkbtmceh", // Your email password
   },
 });
 
@@ -49,6 +49,51 @@ export const sendOTP = async (email: string, otp: string): Promise<void> => {
     console.log("OTP email sent successfully.");
   } catch (error) {
     console.error("Error sending OTP email:", error);
+    throw error;
+  }
+};
+
+// In your emailService.ts file
+
+export const sendFeedbackEmail = async (
+  type: string,
+  message: string,
+  source: any
+): Promise<void> => {
+  try {
+    let subject: string;
+    switch (type.toLowerCase()) {
+      case "feedback":
+        subject = "User Feedback";
+        break;
+      case "help center":
+        subject = "Help Center Request";
+        break;
+      case "report a problem":
+        subject = "Problem Report";
+        break;
+      default:
+        subject = "User Message";
+    }
+
+    // Create a string with the source information
+    const sourceInfo = Object.entries(source)
+      .map(([key, value]) => `${key}: ${value}`)
+      .join("\n");
+
+    // Email options
+    const emailOptions = {
+      from: "faheemahmad0108@gmail.com", // Sender address (change to your Gmail address)
+      to: "faheemahmad0108@gmail.com", // Change this to your support email
+      subject: subject,
+      text: `Type: ${type}\n\nMessage: ${message}\n\nSource Information:\n${sourceInfo}`,
+    };
+
+    // Send email
+    await sendEmail(emailOptions);
+    console.log("Feedback email sent successfully.");
+  } catch (error) {
+    console.error("Error sending feedback email:", error);
     throw error;
   }
 };

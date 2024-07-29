@@ -1,3 +1,4 @@
+import { getUserById } from "../db/users";
 import { createNewRatingDb } from "../db/rating";
 import {
   createNewSessionDb,
@@ -6,6 +7,8 @@ import {
 } from "../db/session";
 import express from "express";
 import moment from "moment";
+import { createNotification } from "../db/notifications";
+import { pusherServer } from "../lib/pusher";
 
 interface LiveSession extends Document {
   isLive?: boolean;
@@ -51,8 +54,39 @@ export const createNewSession = async (
     await newSession.save();
 
     newSession.ratings = newRating;
+
+    const tutor = await getUserById(tutorId);
+
+    console.log("tutor", tutor.followers);
+    if (tutor && tutor.followers.length > 0) {
+      // Create a notification for each follower
+      const notificationPromises = tutor.followers.map(
+        async (followerId: any) => {
+          console.log("followers", followerId);
+          // Create database notification
+          const notification = await createNotification(followerId as any, {
+            type: "info",
+            title: "New Session Available",
+            message: `${tutor.firstName} ${tutor.lastName} has hosted a new session on ${subject}`,
+          });
+
+          // Send Pusher notification
+          await pusherServer.trigger(
+            `${followerId}-notifications`,
+            "notification:new",
+            notification
+          );
+
+          return notification;
+        }
+      );
+
+      await Promise.all(notificationPromises);
+    }
+
     return res.status(200).json({ data: newSession });
   } catch (err) {
+    console.log("er", err);
     return res.status(500).json({ error: err.message });
   }
 };

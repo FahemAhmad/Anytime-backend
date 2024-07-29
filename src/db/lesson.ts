@@ -70,3 +70,7 @@ export const deleteLessonByIdDb = (lessonId: string) => {
     { new: true }
   );
 };
+
+export const getLessonDetailsByIdDb = (lessonId: string) => {
+  return LessonModel.findById(lessonId);
+};

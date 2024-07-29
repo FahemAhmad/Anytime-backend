@@ -10,6 +10,9 @@ import rating from "./rating";
 import lesson from "./lesson";
 import payment from "./payment";
 import booking from "./booking";
+import notifications from "./notifications";
+import transaction from "./transaction";
+import feedback from "./feedback";
 
 const router = express.Router();
 
@@ -25,6 +28,9 @@ export default (): express.Router => {
   lesson(router);
   payment(router);
   booking(router);
+  notifications(router);
+  transaction(router);
+  feedback(router);
 
   return router;
 };

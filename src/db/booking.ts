@@ -50,5 +50,5 @@ export const createNewBookingDb = (values: Record<string, any>) => {
 };
 
 export const getBookingByBookingId = (bookingId: string) => {
-  return BookingModel.findOne({ _id: bookingId });
+  return BookingModel.findOne({ _id: bookingId }).populate("tutorId lessonId");
 };

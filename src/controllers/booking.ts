@@ -1,7 +1,15 @@
-import { getUserById } from "../db/users";
+import { getUserById, updateUserById } from "../db/users";
 import { createNewBookingDb, getBookingByBookingId } from "../db/booking";
 import express from "express";
-import { identity } from "lodash";
+import { createNotification } from "../db/notifications";
+import {
+  MESSAGES,
+  getBookingReceivedNotifications,
+  getBookingStatusUpdate,
+} from "../helpers/notifications";
+import { getLessonDetailsByIdDb } from "../db/lesson";
+import { pusherServer } from "../lib/pusher";
+import { createTransaction } from "../db/transactions";
 
 //create a new lesson
 export const bookASpot = async (
@@ -27,6 +35,31 @@ export const bookASpot = async (
     if (tutor.bookings) tutor.bookings.push(newBooking._id);
     else tutor.bookings = [newBooking._id];
 
+    const lesson = await getLessonDetailsByIdDb(req.body.lessonId);
+
+    // drop a notification to tutor
+    const createdNotification = await createNotification(req.body.tutorId, {
+      type: "action",
+      title: MESSAGES.BOOKING_RECIEVED,
+      message: getBookingReceivedNotifications(
+        `${userDetails?.firstName || ""} ${userDetails?.lastName || ""}`,
+        `${lesson?.subject || ""}`,
+        `${req.body.dateOfLesson} ${req.body.hourOflesson}`
+      ),
+    });
+
+    await pusherServer.trigger(
+      `${req.body.tutorId}-notifications`,
+      "notification:new",
+      createdNotification
+    );
+
+    if (tutor.notifications) {
+      tutor.notifications.push(createdNotification._id);
+    } else {
+      tutor.notifications = [createdNotification._id];
+    }
+
     await tutor.save();
     await userDetails.save();
 
@@ -46,6 +79,8 @@ export const bookingPayed = async (
   try {
     // Create a new booking
     const bookingId = req.params.id;
+    const { paymentIntentId, amount } = req.body;
+    const userId = req.identity._id;
 
     const booking = await getBookingByBookingId(bookingId);
     if (!booking) return res.status(404).json({ error: "Booking not found" });
@@ -53,8 +88,21 @@ export const bookingPayed = async (
     booking.isPaid = true;
     await booking.save();
 
-    // update the spot from lesson table
-    return res.status(200).json({ success: true });
+    const transaction = await createTransaction({
+      user: userId,
+      booking: bookingId,
+      amount,
+      paymentIntentId,
+    });
+
+    // Update user's transactions
+    const user = await getUserById(userId);
+    if (user) {
+      user.transactions.push(transaction._id);
+      await updateUserById(userId, { transactions: user.transactions });
+    }
+
+    return res.status(200).json(transaction);
   } catch (err) {
     console.log("errir", err);
     return res.status(500).json({ error: err.message });
@@ -68,9 +116,34 @@ export const changeBookingStatus = async (
   try {
     const bookingId = req.params.id;
 
-    const bookings = await getBookingByBookingId(bookingId);
+    const bookings: any = await getBookingByBookingId(bookingId);
 
     if (!bookings) return res.status(404).json({ error: "Booking not found" });
+
+    const statusMessages: Record<string, string> = {
+      ACCEPTED: MESSAGES.BOOKING_ACCEPTED,
+      REJECTED: MESSAGES.BOOKING_REJECTED,
+      COMPLETED: MESSAGES.BOOKING_DELIVERED,
+    };
+    const createdNotification = await createNotification(bookings.userId, {
+      type: "action",
+      title: statusMessages[req.body.status],
+      message: getBookingStatusUpdate(
+        `${bookings?.tutorId?.firstName || ""} ${
+          bookings?.tutorId?.lastName || ""
+        }`,
+        `${req.body.status}`,
+        `${bookings?.lessonId?.subject || ""}`
+      ),
+    });
+
+    await pusherServer.trigger(
+      `${
+        req.body.status === "COMPLETED" ? bookings.tutorId._id : bookings.userId
+      }-notifications`,
+      "notification:new",
+      createdNotification
+    );
 
     bookings.status = req.body.status;
     await bookings.save();
@@ -88,13 +161,32 @@ export const addProof = async (
   try {
     const bookingId = req.params.id;
 
-    const bookings = await getBookingByBookingId(bookingId);
+    const bookings: any = await getBookingByBookingId(bookingId);
 
     if (!bookings) return res.status(404).json({ error: "Booking not found" });
 
     bookings.proofOfDelivery = req.body.proof;
     bookings.status = "DELIVERED";
     await bookings.save();
+
+    const createdNotification = await createNotification(bookings.userId, {
+      type: "action",
+      title: "DELIVERED",
+      message: getBookingStatusUpdate(
+        `${bookings?.tutorId?.firstName || ""} ${
+          bookings?.tutorId?.lastName || ""
+        }`,
+        "DELIVERED",
+        `${bookings?.lessonId?.subject || ""}`
+      ),
+    });
+
+    //send to user that your application is accepted or rejected
+    await pusherServer.trigger(
+      `${bookings.userId}-notifications`,
+      "notification:new",
+      createdNotification
+    );
 
     return res.status(200).json({ success: true });
   } catch (err) {
