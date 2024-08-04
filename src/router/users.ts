@@ -7,7 +7,7 @@ import {
   getTutors,
   getUserCards,
   removeCard,
-  searchUsersByEmail,
+  searchUsers,
   tutorFollowers,
   updateProfile,
 } from "../controllers/users";
@@ -16,7 +16,7 @@ import { isAuthenticated } from "../middlewares";
 
 export default (router: express.Router) => {
   router.get(`/users`, isAuthenticated, getAllUsers);
-  router.get(`/users/search`, isAuthenticated, searchUsersByEmail);
+  router.get(`/users/search`, isAuthenticated, searchUsers);
   router.get(`/users/tutors`, isAuthenticated, getTutors);
   router.put(`/users/follow`, isAuthenticated, followUnfollowUser);
   router.get(`/users/listFollow`, isAuthenticated, tutorFollowers);

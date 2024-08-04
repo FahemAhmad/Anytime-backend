@@ -146,20 +146,38 @@ export const UserModel = mongoose.model("User", UserSchema);
 export const getUsers = () => UserModel.find();
 export const getUsersByEmail = (email: string) => UserModel.findOne({ email });
 
-export const searchUserByEmail = (email: string, currentUserId: string) =>
-  UserModel.find(
+export const searchUsersDb = (searchTerm: string, currentUserId: string) => {
+  const searchWords = searchTerm.split(/\s+/).filter((word) => word.length > 0);
+  const regexPatterns = searchWords.map((word) => new RegExp(word, "i"));
+
+  return UserModel.find(
     {
       _id: { $ne: currentUserId },
-      email: { $regex: email, $options: "i" },
+      $or: [
+        { username: { $regex: searchTerm, $options: "i" } },
+        { firstName: { $in: regexPatterns } },
+        { lastName: { $in: regexPatterns } },
+        {
+          $expr: {
+            $regexMatch: {
+              input: { $concat: ["$firstName", " ", "$lastName"] },
+              regex: searchTerm,
+              options: "i",
+            },
+          },
+        },
+      ],
     },
     {
       _id: 1,
       firstName: 1,
       lastName: 1,
       email: 1,
+      username: 1,
       avatarUrl: 1,
     }
   );
+};
 
 export const getUserBySessionToken = (sessionToken: string) =>
   UserModel.findOne({

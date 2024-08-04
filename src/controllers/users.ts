@@ -6,7 +6,7 @@ import {
   getUserById,
   getUsers,
   removeCardFromUser,
-  searchUserByEmail,
+  searchUsersDb,
   updateUserById,
 } from "../db/users";
 import { BookingModel } from "../db/booking";
@@ -38,18 +38,18 @@ export const getAllUsers = async (
   }
 };
 
-export const searchUsersByEmail = async (
+export const searchUsers = async (
   req: express.Request & { identity: any },
   res: express.Response
 ) => {
   try {
-    const { email } = req.query;
+    const { value } = req.query;
 
-    if (!email) {
+    if (!value) {
       return res.status(400).json({ message: "Email is required" });
     }
 
-    const users = await searchUserByEmail(email as string, req.identity._id);
+    const users = await searchUsersDb(value as string, req.identity._id);
 
     return res.status(200).json({ data: users }).end();
   } catch (error) {
