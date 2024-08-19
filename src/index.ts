@@ -34,7 +34,7 @@ export const redisClient = createClient({
   url: "rediss://default:AbIiAAIncDExYjU0ODQ0MDE4OWM0MTdiOGE0NDNkMzc2YjYxYmY4MHAxNDU2MDI@right-camel-45602.upstash.io:6379",
   socket: {
     reconnectStrategy: (retries) => Math.min(retries * 50, 2000), // Retry strategy with exponential backoff
-    keepAlive: 10000, // TCP keepalive in milliseconds
+    keepAlive: 10000,
   },
 });
 
