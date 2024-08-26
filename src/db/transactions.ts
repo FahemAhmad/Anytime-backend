@@ -23,7 +23,7 @@ const TransactionSchema = new mongoose.Schema({
   },
   type: {
     type: String,
-    enum: ["BOOKING", "CREDIT_PURCHASE", "CREDIT_DEDUCTION"],
+    enum: ["BOOKING", "CREDIT_PURCHASE", "CREDIT_DEDUCTION", "WITHDRAWAL"],
     required: true,
     default: "BOOKING",
   },

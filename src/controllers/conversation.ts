@@ -1,9 +1,11 @@
 import { pusherServer } from "../lib/pusher";
 import {
+  IConversation,
   createNewConversation,
   getConversationById,
   getExistingConversations,
   getUserConversationByUserId,
+  updateConversationById,
 } from "../db/conversation";
 import express from "express";
 import {
@@ -60,6 +62,7 @@ export const createConversation = async (
         testDate,
         messageIds: [] as any,
         userIds: [...userIds, req.identity._id],
+        admin: req.identity._id,
       };
 
       await saveConversationDetailsToRedis(
@@ -183,7 +186,7 @@ export const getConversationByConversationId = async (
     }
 
     if (conversation) {
-      conversation.userIds.forEach((user) => {
+      conversation.userIds.forEach((user: any) => {
         if (user._id.toString() === req.identity._id.toString()) {
           return res.status(200).json({ data: conversation });
         }
@@ -215,7 +218,7 @@ export const deleteConversation = async (
 
     if (conversation) {
       //remove from userIds
-      conversation.userIds.forEach((user) => {
+      conversation.userIds.forEach((user: any) => {
         if (user._id.toString() === req.identity._id.toString()) {
           //remove from userIds
           const index = conversation.userIds.indexOf(user);
@@ -232,5 +235,58 @@ export const deleteConversation = async (
       .json({ message: "Conversation deleted successfully" });
   } catch (err) {
     return res.status(500).json({ error: err.message });
+  }
+};
+
+export const updateGroupDetails = async (
+  req: express.Request & { identity: any },
+  res: express.Response
+) => {
+  try {
+    const { conversationId } = req.params;
+    const { name, subject, testDate, groupImage, userIds } = req.body;
+
+    const conversation = await getConversationById(conversationId);
+
+    if (!conversation) {
+      return res.status(404).json({ error: "Conversation not found" });
+    }
+
+    // Check if the user is the admin of the group
+    if (conversation.admin.toString() !== req.identity._id.toString()) {
+      return res
+        .status(403)
+        .json({ error: "Only the admin can update group details" });
+    }
+
+    const updates: Partial<IConversation> = {};
+
+    if (name) updates.name = name;
+    if (subject) updates.subject = subject;
+    if (testDate) updates.testDate = testDate;
+    if (groupImage) updates.groupImage = groupImage;
+    if (userIds) updates.userIds = userIds;
+
+    const updatedConversation = await updateConversationById(
+      conversationId,
+      updates
+    );
+
+    await saveConversationDetailsToRedis(conversationId, updatedConversation);
+
+    updatedConversation.userIds.forEach((user: any) => {
+      if (user.email) {
+        pusherServer.trigger(
+          user.email,
+          "conversation:update",
+          updatedConversation
+        );
+      }
+    });
+
+    return res.status(200).json({ data: updatedConversation });
+  } catch (error) {
+    console.error("Error updating group details:", error);
+    return res.status(500).json({ error: error.message });
   }
 };

@@ -139,6 +139,12 @@ const UserSchema = new mongoose.Schema({
     type: Number,
     default: 0,
   },
+  stripeConnectedAccountId: String,
+  stripeBankAccountId: String,
+  country: {
+    type: String,
+    default: "",
+  },
 });
 
 export const UserModel = mongoose.model("User", UserSchema);

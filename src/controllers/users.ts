@@ -311,6 +311,7 @@ export const updateProfile = async (
       expertise,
       introduction,
       avatarUrl,
+      country,
     } = req.body;
 
     // Create an object with the fields to update
@@ -323,6 +324,7 @@ export const updateProfile = async (
     if (expertise) updateFields.expertise = expertise;
     if (introduction) updateFields.introduction = introduction;
     if (avatarUrl) updateFields.avatarUrl = avatarUrl;
+    if (country) updateFields.country = country;
 
     // Update the user profile
     const updatedUser = await updateUserById(userId, updateFields);

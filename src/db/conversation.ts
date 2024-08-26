@@ -1,5 +1,17 @@
 import mongoose from "mongoose";
 
+export interface IConversation extends mongoose.Document {
+  name?: string;
+  isGroup: boolean;
+  groupImage?: string;
+  subject?: string;
+  testDate?: string;
+  messageIds: mongoose.Types.ObjectId[];
+  userIds: mongoose.Types.ObjectId[];
+  admin?: mongoose.Types.ObjectId;
+  lastMessageAt: Date;
+}
+
 const ConversationSchema = new mongoose.Schema(
   {
     _id: mongoose.Schema.Types.ObjectId,
@@ -25,13 +37,17 @@ const ConversationSchema = new mongoose.Schema(
         ref: "User",
       },
     ],
+    admin: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
   },
   {
     timestamps: true,
   }
 );
 
-export const ConversationModel = mongoose.model(
+export const ConversationModel = mongoose.model<IConversation>(
   "Conversation",
   ConversationSchema
 );
@@ -75,6 +91,7 @@ export const createNewConversation = (values: Record<string, any>) =>
     createdAt: values.createdAt,
     updatedAt: values.updatedAt,
     messageIds: values.messageIds,
+    admin: values.admin,
   }).populate("userIds");
 
 /**
@@ -142,3 +159,16 @@ export const setConversationMessageSeen = (id: string, seenId: string) =>
     { path: "userIds", select: "_id name" },
     { path: "messageIds", populate: { path: "seenIds" } },
   ]);
+
+export const updateConversationById = (
+  id: string,
+  updates: Partial<IConversation>
+) =>
+  ConversationModel.findByIdAndUpdate(id, updates, { new: true })
+    .populate("userIds")
+    .populate({
+      path: "messageIds",
+      populate: {
+        path: "seenIds",
+      },
+    });

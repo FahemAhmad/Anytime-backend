@@ -5,6 +5,7 @@ import {
   getConversationByConversationId,
   getUserConversations,
   deleteConversation,
+  updateGroupDetails,
 } from "../controllers/conversation";
 
 export default (router: express.Router) => {
@@ -16,4 +17,9 @@ export default (router: express.Router) => {
   );
   router.post(`/conversations`, isAuthenticated, createConversation);
   router.put(`/conversations/remove`, isAuthenticated, deleteConversation);
+  router.put(
+    "/conversations/:conversationId",
+    isAuthenticated,
+    updateGroupDetails
+  );
 };
