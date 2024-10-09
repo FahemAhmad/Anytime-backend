@@ -5,6 +5,7 @@ const UserSchema = new mongoose.Schema({
   username: {
     type: String,
     required: true,
+    unique: true,
   },
   firstName: {
     type: String,
@@ -16,6 +17,7 @@ const UserSchema = new mongoose.Schema({
   email: {
     type: String,
     required: true,
+    unique: true,
   },
   authentication: {
     password: {
@@ -28,13 +30,17 @@ const UserSchema = new mongoose.Schema({
     },
     sessionToken: {
       type: String,
-      // select: false,
+    },
+    sessionExpiry: {
+      type: Date,
+      default: null,
     },
   },
   isVerified: {
     default: false,
     type: Boolean,
   },
+
   avatarUrl: {
     default: "",
     type: String,
@@ -83,12 +89,14 @@ const UserSchema = new mongoose.Schema({
     default: 0,
   },
   lessons: [
+    // lessons offered by the user
     {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Lesson",
     },
   ],
   bookings: [
+    // booking requests recevied by the user
     {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Booking",
@@ -145,11 +153,20 @@ const UserSchema = new mongoose.Schema({
     type: String,
     default: "",
   },
+  role: {
+    type: String,
+    default: "user",
+    enum: ["user", "admin", "superadmin"],
+  },
+  status: {
+    type: Boolean,
+    default: true, // true means active, false means blocked
+  },
 });
 
 export const UserModel = mongoose.model("User", UserSchema);
 
-export const getUsers = () => UserModel.find();
+export const getUsers = () => UserModel.find().populate("lessons");
 export const getUsersByEmail = (email: string) => UserModel.findOne({ email });
 
 export const searchUsersDb = (searchTerm: string, currentUserId: string) => {

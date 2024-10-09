@@ -101,30 +101,6 @@ export const getAllSessionsWithLiveFirst = async (
     // Find all sessions
     let sessions: any = await getAllSessions();
 
-    //for the list of comments in sessions, get the comments and their replies
-    // const commentsWithRepliesPromises = sessions.map(async (session: any) => {
-    //   const commentsWithReplies = await Promise.all(
-    //     session.comments.map(async (commentId: any) => {
-    //       const comment = await getCommentByCommentIdDB(commentId);
-
-    //       //travers the replies list
-    //       const replies = await Promise.all(
-    //         comment.replies.map(async (replyId: any) => {
-    //           return await getCommentByCommentIdDB(replyId.toString());
-    //         })
-    //       );
-
-    //       return { ...comment, replies };
-    //     })
-    //   );
-
-    //   return { ...session, comments: commentsWithReplies };
-    // });
-
-    // const sessionsWithComments = await Promise.all(commentsWithRepliesPromises);
-
-    // console.log("sess", sessionsWithComments[0].comments[0]);
-
     // Add a field 'isLive' to each session document
     sessions = sessions.map((session: any) => {
       const extendedSession = session as unknown as LiveSession;

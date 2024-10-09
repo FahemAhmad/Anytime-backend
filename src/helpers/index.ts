@@ -43,3 +43,9 @@ export const addDuration = (
   const [value, unit] = duration.match(/(\d+)(m|h)/i).slice(1);
   return (timestamp.clone() as any).add(parseInt(value), unit);
 };
+
+export function generateRandomUsername(name: string): string {
+  const baseName = name.split(" ")[0].toLowerCase();
+  const randomNumber = Math.floor(1000 + Math.random() * 9000);
+  return `${baseName}${randomNumber}`;
+}

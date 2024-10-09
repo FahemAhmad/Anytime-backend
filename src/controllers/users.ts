@@ -14,7 +14,7 @@ import {
   attachPaymentMethodToCustomer,
   createOrRetrieveStripeCustomer,
 } from "./payment";
-import { createTransaction } from "../db/transactions";
+import { createTransaction, getTransactionsByUserId } from "../db/transactions";
 
 const shuffleArray = (array: any) => {
   for (let i = array.length - 1; i > 0; i--) {
@@ -475,5 +475,97 @@ export const deductCredits = async (
   } catch (error) {
     console.error("Error deducting credits:", error);
     return res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+export const getUserDetails = async (
+  req: express.Request,
+  res: express.Response
+) => {
+  try {
+    const userId = req.params.id;
+    const user = await getUserById(userId).populate("lessons");
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const transactions = await getTransactionsByUserId(userId);
+
+    const formattedTransactions = transactions.map((transaction) => ({
+      details: getTransactionDetails(transaction),
+      amount: transaction.amount,
+      type: transaction.type,
+      createdAt: transaction.createdAt,
+    }));
+
+    const userDetails = {
+      id: user._id,
+      username: user.username,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      isVerified: user.isVerified,
+      avatarUrl: user.avatarUrl,
+      ratings: user.ratings,
+      ratedCount: user.ratedCount,
+      lessonsOffered: user.lessons,
+      bookingRequests: user.bookings.length,
+      followers: user.followers.length,
+      following: user.following.length,
+      university: user.university,
+      expertise: user.expertise,
+      introduction: user.introduction,
+      credits: user.credits,
+      country: user.country,
+      transactions: formattedTransactions,
+    };
+
+    res.status(200).json(userDetails);
+  } catch (error) {
+    console.error("Error fetching user details:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+function getTransactionDetails(transaction: any) {
+  switch (transaction.type) {
+    case "BOOKING":
+      return `Booked lesson: ${
+        transaction.booking?.lessonId?.subject || "Unknown"
+      }`;
+    case "CREDIT_PURCHASE":
+      return "Purchased credits";
+    case "CREDIT_DEDUCTION":
+      return "Credits deducted";
+    case "WITHDRAWAL":
+      return "Withdrawal";
+    default:
+      return "Unknown transaction";
+  }
+}
+
+export const getAdminUser = async (
+  req: express.Request,
+  res: express.Response
+) => {
+  try {
+    const user = req.user;
+
+    if (!user) {
+      return res
+        .status(500)
+        .json({ message: "User data not found in request" });
+    }
+
+    return res.status(200).json({
+      id: user._id,
+      name: `${user.firstName} ${user.lastName}`,
+      email: user.email,
+      role: user.role,
+      avatarUrl: user.avatarUrl || "",
+    });
+  } catch (error) {
+    console.error("Error fetching user data:", error);
+    return res.status(500).json({ message: "Server error" });
   }
 };

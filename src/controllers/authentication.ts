@@ -7,7 +7,13 @@ import {
   updateUserById,
 } from "../db/users";
 import express from "express";
-import { authentication, generateOTP, isOtpExpired, random } from "../helpers";
+import {
+  authentication,
+  generateOTP,
+  generateRandomUsername,
+  isOtpExpired,
+  random,
+} from "../helpers";
 import { sendOTP } from "../helpers/mail";
 import {
   getUserDetailsFromRedis,
@@ -439,5 +445,179 @@ export const changePassword = async (
     return res.status(400).json({
       message: "Error connecting to server",
     });
+  }
+};
+
+export const adminLogin = async (
+  req: express.Request,
+  res: express.Response
+) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({ message: "Invalid user credentials" });
+    }
+
+    // Retrieve user by email and include password and salt fields
+    const user: any = await UserModel.findOne({ email }).select(
+      "+authentication.salt +authentication.password"
+    );
+
+    if (!user) {
+      return res.status(404).json({ message: "User Not Found" });
+    }
+
+    if (user && !user.isVerified) {
+      return res.status(409).json({ message: "Email is not verified" });
+    }
+
+    if (user && user.provider !== "email") {
+      return res
+        .status(409)
+        .json({ message: "User is registered with another provider" });
+    }
+
+    // Check if the user is an admin or superadmin
+    if (!["admin", "superadmin"].includes(user.role)) {
+      return res.status(403).json({ message: "Access denied. Admins only." });
+    }
+
+    // Validate the password
+    const expectedHash = authentication(user.authentication.salt, password);
+    if (user.authentication.password !== expectedHash) {
+      return res.status(403).json({
+        message: "Invalid Credentials",
+      });
+    }
+
+    // Generate new session token and expiry
+    const salt = random();
+    const sessionToken = authentication(salt, user._id.toString());
+    const sessionExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // Set expiry time to 24 hours
+
+    // Save session token and expiry in the user object
+    user.authentication.sessionToken = sessionToken;
+    user.authentication.sessionExpiry = sessionExpiry;
+    await user.save();
+
+    // Set the session token as an HTTP-only cookie
+    res.cookie("sessionToken", sessionToken, {
+      httpOnly: true,
+      domain: "localhost",
+      secure: process.env.NODE_ENV !== "development", // Use secure cookies in production
+      sameSite: "lax", // Adjust as needed
+      maxAge: 24 * 60 * 60 * 1000, // 1 day
+      path: "/",
+    });
+
+    // Send back the user info without sessionToken (since it's in the cookie)
+    return res.status(200).json({
+      id: user._id,
+      name: `${user.firstName} ${user.lastName}`,
+      email: user.email,
+      role: user.role,
+      avatarUrl: user.avatarUrl || "",
+    });
+  } catch (err) {
+    console.log("Error during login:", err);
+    return res.status(500).json({
+      message: "Error connecting to server",
+    });
+  }
+};
+
+export const createAdmin = async (
+  req: express.Request,
+  res: express.Response
+) => {
+  try {
+    const { email, password, name } = req.body;
+
+    // Check if all required fields are provided
+    if (!email || !password || !name) {
+      return res
+        .status(400)
+        .json({ message: "Email, password, and name are required." });
+    }
+
+    // Check if the email already exists
+    const existingUser = await UserModel.findOne({ email });
+    if (existingUser) {
+      return res
+        .status(409)
+        .json({ message: "User with this email already exists." });
+    }
+
+    // Split name into firstName and lastName
+    const [firstName, ...lastNameArr] = name.split(" ");
+    const lastName = lastNameArr.join(" ");
+
+    // Generate a random username for the admin
+    let username = generateRandomUsername(name);
+
+    // Ensure the generated username is unique
+    while (await UserModel.findOne({ username })) {
+      username = generateRandomUsername(name);
+    }
+
+    // Generate a random salt and hash the password
+    const salt = random();
+    const hashedPassword = authentication(salt, password);
+
+    // Create a new admin user
+    const newUser = new UserModel({
+      username, // Assign the generated username
+      email,
+      firstName,
+      lastName,
+      authentication: {
+        password: hashedPassword,
+        salt: salt,
+      },
+      role: "admin", // Assign the 'admin' role
+      isVerified: true, // Mark admin as verified by default
+    });
+
+    // Save the user to the database
+    const savedUser = await newUser.save();
+
+    return res
+      .status(201)
+      .json({ message: "Admin created successfully", userId: savedUser._id });
+  } catch (error) {
+    console.error("Error creating admin:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const logout = async (req: express.Request, res: express.Response) => {
+  try {
+    const user = req.user; // Authenticated user set by the middleware
+
+    if (!user) {
+      return res
+        .status(500)
+        .json({ message: "User data not found in request" });
+    }
+
+    // Invalidate the session by clearing sessionToken and sessionExpiry
+    user.authentication.sessionToken = "";
+    user.authentication.sessionExpiry = null;
+    await user.save();
+
+    // Clear the sessionToken cookie from the client's browser
+    res.clearCookie("sessionToken", {
+      httpOnly: true,
+      domain: "localhost", // Adjust if needed
+      secure: process.env.NODE_ENV === "production", // Ensure it matches the cookie settings during login
+      sameSite: "lax", // Should match the cookie settings during login
+      path: "/",
+    });
+
+    return res.status(200).json({ message: "Logout successful" });
+  } catch (error) {
+    console.error("Error during logout:", error);
+    return res.status(500).json({ message: "Server error during logout" });
   }
 };

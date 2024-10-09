@@ -14,10 +14,12 @@ require("dotenv").config();
 
 const app = express();
 
+const allowedOrigin = "http://localhost:3000";
+
 app.use(
   cors({
     credentials: true,
-    origin: "*",
+    origin: allowedOrigin,
     methods: "GET,PUT,POST,DELETE",
     allowedHeaders: ["Content-Type", "Authorization"],
   })

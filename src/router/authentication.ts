@@ -1,16 +1,19 @@
 import express from "express";
 
 import {
+  adminLogin,
   changePassword,
+  createAdmin,
   forgotPassword,
   login,
+  logout,
   oauthLogin,
   register,
   resendOtp,
   updatePassword,
   verifyOTP,
 } from "../controllers/authentication";
-import { isAuthenticated } from "../middlewares";
+import { authenticateAdmin, isAuthenticated } from "../middlewares";
 
 export default (router: express.Router) => {
   router.post(`/auth/sign-up`, register);
@@ -21,4 +24,9 @@ export default (router: express.Router) => {
   router.put("/auth/update-password", updatePassword);
   router.post("/auth/providers/:providerName", oauthLogin);
   router.put("/auth/change-password", isAuthenticated, changePassword);
+
+  // admin dashboard
+  router.post(`/auth/admin-login`, adminLogin);
+  router.post("/auth/create-admin", createAdmin);
+  router.post("/auth/logout", authenticateAdmin, logout);
 };

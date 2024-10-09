@@ -1,5 +1,9 @@
 import { getUserById, updateUserById } from "../db/users";
-import { createNewBookingDb, getBookingByBookingId } from "../db/booking";
+import {
+  BookingModel,
+  createNewBookingDb,
+  getBookingByBookingId,
+} from "../db/booking";
 import express from "express";
 import { createNotification } from "../db/notifications";
 import {
@@ -236,5 +240,23 @@ export const addFeedback = async (
   } catch (err) {
     console.log("err", err);
     return res.status(500).json({ error: err.message });
+  }
+};
+
+export const getAllBookings = async (
+  req: express.Request,
+  res: express.Response
+) => {
+  try {
+    const bookings = await BookingModel.find()
+      .populate("lessonId", "subject")
+      .populate("userId", "firstName lastName")
+      .populate("tutorId", "firstName lastName");
+
+    return res.status(200).json({ success: true, data: bookings });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ success: false, message: "Error fetching bookings", error });
   }
 };

@@ -1,33 +1,39 @@
 import mongoose from "mongoose";
 
-const TransactionSchema = new mongoose.Schema({
-  user: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
-    required: true,
+const TransactionSchema = new mongoose.Schema(
+  {
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    booking: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Booking",
+    },
+    amount: {
+      type: Number,
+      required: true,
+    },
+    paymentIntentId: {
+      type: String,
+    },
+
+    type: {
+      type: String,
+      enum: ["BOOKING", "CREDIT_PURCHASE", "CREDIT_DEDUCTION", "WITHDRAWAL"],
+      required: true,
+      default: "BOOKING",
+    },
+
+    paymentMethod: {
+      type: String,
+      enum: ["CARD", "CREDITS"],
+      default: ["CARD"],
+    },
   },
-  booking: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Booking",
-  },
-  amount: {
-    type: Number,
-    required: true,
-  },
-  paymentIntentId: {
-    type: String,
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
-  type: {
-    type: String,
-    enum: ["BOOKING", "CREDIT_PURCHASE", "CREDIT_DEDUCTION", "WITHDRAWAL"],
-    required: true,
-    default: "BOOKING",
-  },
-});
+  { timestamps: true }
+);
 
 export const TransactionModel = mongoose.model(
   "Transaction",

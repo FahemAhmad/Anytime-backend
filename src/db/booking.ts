@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import rating from "router/rating";
 
 const BookingSchema = new mongoose.Schema({
   lessonId: {

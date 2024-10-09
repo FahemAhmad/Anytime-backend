@@ -13,6 +13,7 @@ import booking from "./booking";
 import notifications from "./notifications";
 import transaction from "./transaction";
 import feedback from "./feedback";
+import statistics from "./statistics";
 
 const router = express.Router();
 
@@ -31,6 +32,7 @@ export default (): express.Router => {
   notifications(router);
   transaction(router);
   feedback(router);
+  statistics(router);
 
   return router;
 };
