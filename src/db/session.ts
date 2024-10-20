@@ -9,8 +9,8 @@ const sessionSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
     },
-    startTime: String, // 9/16/23
-    startDate: String, // dd-mm-yyyy
+    startTime: String,
+    startDate: String,
     sessionDuration: Number,
     viewersCount: Number,
     description: String,

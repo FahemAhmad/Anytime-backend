@@ -1,168 +1,176 @@
 import { saveUserDetailsToRedis } from "../lib/redisService";
 import mongoose from "mongoose";
 
-const UserSchema = new mongoose.Schema({
-  username: {
-    type: String,
-    required: true,
-    unique: true,
-  },
-  firstName: {
-    type: String,
-    required: true,
-  },
-  lastName: {
-    type: String,
-  },
-  email: {
-    type: String,
-    required: true,
-    unique: true,
-  },
-  authentication: {
-    password: {
+const UserSchema = new mongoose.Schema(
+  {
+    username: {
       type: String,
-      select: false,
+      required: true,
+      unique: true,
     },
-    salt: {
+    firstName: {
       type: String,
-      select: false,
+      required: true,
     },
-    sessionToken: {
+    lastName: {
       type: String,
     },
-    sessionExpiry: {
-      type: Date,
-      default: null,
+    email: {
+      type: String,
+      required: true,
+      unique: true,
     },
-  },
-  isVerified: {
-    default: false,
-    type: Boolean,
-  },
+    authentication: {
+      password: {
+        type: String,
+        select: false,
+      },
+      salt: {
+        type: String,
+        select: false,
+      },
+      sessionToken: {
+        type: String,
+      },
+      sessionExpiry: {
+        type: Date,
+        default: null,
+      },
+    },
+    isVerified: {
+      default: false,
+      type: Boolean,
+    },
 
-  avatarUrl: {
-    default: "",
-    type: String,
-  },
-  otp: {
-    type: Number,
-    min: 100000,
-    max: 999999,
-  },
-  otpExpiryTime: {
-    type: Date,
-  },
-  isOtpVerified: {
-    default: false,
-    type: Boolean,
-  },
-  provider: {
-    type: String,
-    default: "email",
-    enum: ["email", "google", "fb"],
-  },
-  conversationIds: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Conversation",
+    avatarUrl: {
+      default: "",
+      type: String,
     },
-  ],
-  seenMessagesId: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Message",
+    otp: {
+      type: Number,
+      min: 100000,
+      max: 999999,
     },
-  ],
-  messages: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Message",
+    otpExpiryTime: {
+      type: Date,
     },
-  ],
-  ratings: {
-    type: String,
-    default: "N/A",
-  },
-  ratedCount: {
-    type: Number,
-    default: 0,
-  },
-  lessons: [
-    // lessons offered by the user
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Lesson",
+    isOtpVerified: {
+      default: false,
+      type: Boolean,
     },
-  ],
-  bookings: [
-    // booking requests recevied by the user
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Booking",
+    provider: {
+      type: String,
+      default: "email",
+      enum: ["email", "google", "fb"],
     },
-  ],
-  transactions: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Transaction",
+    conversationIds: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Conversation",
+      },
+    ],
+    seenMessagesId: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Message",
+      },
+    ],
+    messages: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Message",
+      },
+    ],
+    ratings: {
+      type: String,
+      default: "N/A",
     },
-  ],
-  followers: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+    ratedCount: {
+      type: Number,
+      default: 0,
     },
-  ],
-  following: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+    lessons: [
+      // lessons offered by the user
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Lesson",
+      },
+    ],
+    bookings: [
+      // booking requests recevied by the user
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Booking",
+      },
+    ],
+    transactions: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Transaction",
+      },
+    ],
+    followers: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
+    following: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
+    notifications: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Notification",
+      },
+    ],
+    university: {
+      type: String,
     },
-  ],
-  notifications: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Notification",
+    expertise: {
+      type: String,
     },
-  ],
-  university: {
-    type: String,
-  },
-  expertise: {
-    type: String,
-  },
-  introduction: {
-    type: String,
-  },
-  savedCards: [
-    {
-      last4: String,
-      brand: String,
-      stripePaymentMethodId: String,
+    introduction: {
+      type: String,
     },
-  ],
-  stripeCustomerId: String,
-  credits: {
-    type: Number,
-    default: 0,
+    savedCards: [
+      {
+        last4: String,
+        brand: String,
+        stripePaymentMethodId: String,
+      },
+    ],
+    stripeCustomerId: String,
+    credits: {
+      type: Number,
+      default: 0,
+    },
+    stripeConnectedAccountId: String,
+    stripeBankAccountId: String,
+    country: {
+      type: String,
+      default: "",
+    },
+    role: {
+      type: String,
+      default: "user",
+      enum: ["user", "admin", "superadmin"],
+    },
+    status: {
+      type: Boolean,
+      default: true, // true means active, false means blocked
+    },
   },
-  stripeConnectedAccountId: String,
-  stripeBankAccountId: String,
-  country: {
-    type: String,
-    default: "",
-  },
-  role: {
-    type: String,
-    default: "user",
-    enum: ["user", "admin", "superadmin"],
-  },
-  status: {
-    type: Boolean,
-    default: true, // true means active, false means blocked
-  },
-});
+  {
+    timestamps: true,
+  }
+);
+
+UserSchema.index({ createdAt: -1 });
+UserSchema.index({ lessons: 1 });
 
 export const UserModel = mongoose.model("User", UserSchema);
 

@@ -53,6 +53,8 @@ const LessonSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+LessonSchema.index({ tutor: 1 });
+
 export const LessonModel = mongoose.model("Lesson", LessonSchema);
 
 export const createNewLessonDb = (values: Record<string, any>) => {

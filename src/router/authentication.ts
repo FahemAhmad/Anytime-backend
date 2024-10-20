@@ -12,6 +12,7 @@ import {
   resendOtp,
   updatePassword,
   verifyOTP,
+  blockUser,
 } from "../controllers/authentication";
 import { authenticateAdmin, isAuthenticated } from "../middlewares";
 
@@ -26,7 +27,8 @@ export default (router: express.Router) => {
   router.put("/auth/change-password", isAuthenticated, changePassword);
 
   // admin dashboard
+  router.put(`/auth/block/:userId`, authenticateAdmin, blockUser);
   router.post(`/auth/admin-login`, adminLogin);
-  router.post("/auth/create-admin", createAdmin);
+  router.post("/auth/create-admin", authenticateAdmin, createAdmin);
   router.post("/auth/logout", authenticateAdmin, logout);
 };
