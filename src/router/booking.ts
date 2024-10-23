@@ -1,5 +1,5 @@
 import express from "express";
-import { isAuthenticated } from "../middlewares";
+import { authenticateAdmin, isAuthenticated } from "../middlewares";
 import {
   addFeedback,
   addProof,
@@ -10,6 +10,7 @@ import {
 } from "../controllers/booking";
 
 export default (router: express.Router) => {
+  router.get(`/bookings`, authenticateAdmin, getAllBookings);
   router.post(`/bookings`, isAuthenticated, bookASpot);
   router.put(`/bookings/:id/status`, isAuthenticated, changeBookingStatus);
   router.put(`/bookings/:id/payed`, isAuthenticated, bookingPayed);
@@ -17,5 +18,10 @@ export default (router: express.Router) => {
   router.put(`/bookings/:id/feedback`, isAuthenticated, addFeedback);
 
   // to be used for dashboard
-  router.get(`/bookings`, getAllBookings);
+  router.post("/bookings/:id/admin-payed", authenticateAdmin, bookingPayed);
+  router.post(
+    "/bookings/:id/admin-status",
+    authenticateAdmin,
+    changeBookingStatus
+  );
 };

@@ -13,8 +13,13 @@ import {
   updatePassword,
   verifyOTP,
   blockUser,
+  deleteAdmin,
 } from "../controllers/authentication";
-import { authenticateAdmin, isAuthenticated } from "../middlewares";
+import {
+  authenticateAdmin,
+  authenticateSuperAdmin,
+  isAuthenticated,
+} from "../middlewares";
 
 export default (router: express.Router) => {
   router.post(`/auth/sign-up`, register);
@@ -29,6 +34,17 @@ export default (router: express.Router) => {
   // admin dashboard
   router.put(`/auth/block/:userId`, authenticateAdmin, blockUser);
   router.post(`/auth/admin-login`, adminLogin);
-  router.post("/auth/create-admin", authenticateAdmin, createAdmin);
+  router.post(
+    "/auth/create-admin",
+    authenticateAdmin,
+    authenticateSuperAdmin,
+    createAdmin
+  );
   router.post("/auth/logout", authenticateAdmin, logout);
+  router.delete(
+    "/auth/:id",
+    authenticateAdmin,
+    authenticateSuperAdmin,
+    deleteAdmin
+  );
 };

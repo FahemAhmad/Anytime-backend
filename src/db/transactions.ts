@@ -28,7 +28,7 @@ const TransactionSchema = new mongoose.Schema(
 
     paymentMethod: {
       type: String,
-      enum: ["CARD", "CREDITS"],
+      enum: ["CARD", "CREDITS","ADMIN"],
       default: ["CARD"],
     },
   },

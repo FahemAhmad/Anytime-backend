@@ -1,13 +1,15 @@
 import express from "express";
-import { isAuthenticated } from "../middlewares";
+import { authenticateAdmin, isAuthenticated } from "../middlewares";
 import {
   getAllTransactions,
   getUserTransactions,
+  newTransctionByAdmin,
 } from "../controllers/transactions";
 
 export default (router: express.Router) => {
-  router.get("/transactions", isAuthenticated, getUserTransactions);
-
   // To be used by admin
-  router.get("/allTransactions", getAllTransactions);
+  router.get("/transactions/all", authenticateAdmin, getAllTransactions);
+  router.post("/transactions/admin", authenticateAdmin, newTransctionByAdmin);
+
+  router.get("/transactions", isAuthenticated, getUserTransactions);
 };

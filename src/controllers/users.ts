@@ -51,7 +51,7 @@ export const searchUsers = async (
 
     const users = await searchUsersDb(value as string, req.identity._id);
 
-    return res.status(200).json({ data: users }).end();
+    return res.status(200).json(users).end();
   } catch (error) {
     console.log(error);
     return res.sendStatus(400);
@@ -569,3 +569,21 @@ export const getAdminUser = async (
     return res.status(500).json({ message: "Server error" });
   }
 };
+
+export const getAllAdmins = async (
+  req: express.Request,
+  res: express.Response
+) => {
+  try {
+    const admins = await UserModel.find({
+      $or: [{ role: "admin" }, { role: "superadmin" }],
+    }).select("firstName lastName email username role _id");
+
+    return res.status(200).json(admins);
+  } catch (error) {
+    console.error("Error fetching admins:", error);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
+
+

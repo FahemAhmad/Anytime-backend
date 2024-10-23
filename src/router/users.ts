@@ -3,6 +3,7 @@ import {
   deductCredits,
   followUnfollowUser,
   getAdminUser,
+  getAllAdmins,
   getAllUsers,
   getStatistics,
   getTutors,
@@ -17,6 +18,11 @@ import express from "express";
 import { authenticateAdmin, isAuthenticated } from "../middlewares";
 
 export default (router: express.Router) => {
+  // Admin routes
+  router.get(`/users/admin-search`, authenticateAdmin, searchUsers);
+  router.get("/users/get-admins", authenticateAdmin, getAllAdmins);
+
+  // User routes
   router.get(`/users/search`, isAuthenticated, searchUsers);
   router.get(`/users/tutors`, isAuthenticated, getTutors);
   router.put(`/users/follow`, isAuthenticated, followUnfollowUser);
@@ -30,7 +36,7 @@ export default (router: express.Router) => {
 
   // Routes for dashboard
 
+  router.get(`/users`, authenticateAdmin, getAllUsers);
   router.get("/users/admin-details", authenticateAdmin, getAdminUser);
-  router.get(`/users`, getAllUsers);
-  router.get("/users/:id", getUserDetails);
+  router.get("/users/:id", authenticateAdmin, getUserDetails);
 };

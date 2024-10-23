@@ -51,3 +51,35 @@ export const markFeedbackResolved = async (req: Request, res: Response) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
+export const getAllFeedbacks = async (req: Request, res: Response) => {
+  try {
+    const feedbacks = await FeedbackModel.find().populate(
+      "user",
+      "username email firstName lastName "
+    );
+    res.status(200).json(feedbacks);
+  } catch (error) {
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+export const reoslveFeedbacks = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { resolved } = req.body;
+    const feedback = await FeedbackModel.findByIdAndUpdate(
+      id,
+      { resolved: resolved },
+      { new: true }
+    );
+
+    if (!feedback) {
+      return res.status(404).json({ message: "Feedback not found" });
+    }
+
+    res.status(200).json(feedback);
+  } catch (error) {
+    res.status(500).json({ message: "Error updating feedback", error });
+  }
+};

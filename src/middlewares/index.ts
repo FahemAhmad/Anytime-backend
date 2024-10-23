@@ -33,6 +33,23 @@ export const isAuthenticated = async (
   }
 };
 
+export const authenticateSuperAdmin = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    // Extract session token from HTTP-only cookies
+    if (req.user.role !== "superadmin") {
+      return res.status(401).json({ message: "Unauthorized access" });
+    }
+
+    return next();
+  } catch (error) {
+    return res.status(400);
+  }
+};
+
 export const authenticateAdmin = async (
   req: Request,
   res: Response,
@@ -73,6 +90,7 @@ export const authenticateAdmin = async (
       return res.status(403).json({ message: "Forbidden: Admins only" });
     }
 
+    merge(req, { identity: user });
     // Attach the user to the request object
     req.user = user;
 

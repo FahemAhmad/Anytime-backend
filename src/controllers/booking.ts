@@ -86,29 +86,38 @@ export const bookingPayed = async (
     const { paymentIntentId, amount } = req.body;
     const userId = req.identity._id;
 
+    const isPaidQuery = req.query.isPaid;
+    const isPaid = isPaidQuery !== undefined ? isPaidQuery === "true" : true;
+
+    console.log("check point 1 ");
+
     const booking = await getBookingByBookingId(bookingId);
     if (!booking) return res.status(404).json({ error: "Booking not found" });
 
-    booking.isPaid = true;
+    booking.isPaid = isPaid;
     await booking.save();
 
-    const transaction = await createTransaction({
-      user: userId,
-      booking: bookingId,
-      amount,
-      paymentIntentId,
-    });
+    let transaction = undefined;
+    if (!isPaidQuery) {
+      transaction = await createTransaction({
+        user: userId,
+        booking: bookingId,
+        amount,
+        paymentIntentId,
+      });
 
-    // Update user's transactions
-    const user = await getUserById(userId);
-    if (user) {
-      user.transactions.push(transaction._id);
-      await updateUserById(userId, { transactions: user.transactions });
+      // Update user's transactions
+      const user = await getUserById(userId);
+      if (user) {
+        user.transactions.push(transaction._id);
+        await updateUserById(userId, { transactions: user.transactions });
+      }
     }
 
     return res.status(200).json(transaction);
   } catch (err) {
-    console.log("errir", err);
+    console.log("console.log", err);
+
     return res.status(500).json({ error: err.message });
   }
 };
@@ -128,7 +137,10 @@ export const changeBookingStatus = async (
       ACCEPTED: MESSAGES.BOOKING_ACCEPTED,
       REJECTED: MESSAGES.BOOKING_REJECTED,
       COMPLETED: MESSAGES.BOOKING_DELIVERED,
+      PENDING: MESSAGES.BOOKING_PENDING,
+      DELIVERED: MESSAGES.BOOKING_DELIVERED,
     };
+
     const createdNotification = await createNotification(bookings.userId, {
       type: "action",
       title: statusMessages[req.body.status],
@@ -251,7 +263,7 @@ export const getAllBookings = async (
     const bookings = await BookingModel.find()
       .populate("lessonId", "subject")
       .populate("userId", "firstName lastName")
-      .populate("tutorId", "firstName lastName");
+      .populate("tutorId", "firstName lastName username");
 
     return res.status(200).json({ success: true, data: bookings });
   } catch (error) {

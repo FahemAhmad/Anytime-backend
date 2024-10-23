@@ -3,7 +3,6 @@ export const getBookingReceivedNotifications = (
   lesson: string,
   timeSlot: string
 ): string => {
-  
   return `${userId} has booked a lesson on ${lesson} at ${timeSlot}.`;
 };
 
@@ -19,4 +18,7 @@ export const MESSAGES = {
   BOOKING_ACCEPTED: "Booking Accepted",
   BOOKING_REJECTED: "Booking Rejected",
   BOOKING_DELIVERED: "Lesson Delivered",
+  BOOKING_COMPLETED: "Lesson Completed",
+  BOOKING_PENDING: "Lesson Pending",
+  CREDIT_ADDED: "Credits has been added to your account",
 };

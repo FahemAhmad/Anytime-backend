@@ -184,6 +184,8 @@ export const searchUsersDb = (searchTerm: string, currentUserId: string) => {
   return UserModel.find(
     {
       _id: { $ne: currentUserId },
+      status: true,
+      isVerified: true,
       $or: [
         { username: { $regex: searchTerm, $options: "i" } },
         { firstName: { $in: regexPatterns } },
@@ -229,6 +231,7 @@ export const createUser = (values: Record<string, any>) =>
 
 export const deleteUserById = (id: string) =>
   UserModel.findOneAndDelete({ _id: id });
+
 export const updateUserById = (id: string, values: Record<string, any>) =>
   UserModel.findByIdAndUpdate(id, values, { new: true });
 

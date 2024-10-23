@@ -4,7 +4,6 @@ import {
   createUser,
   getUserById,
   getUsersByEmail,
-  updateUserById,
 } from "../db/users";
 import express from "express";
 import {
@@ -89,7 +88,9 @@ export const login = async (req: express.Request, res: express.Response) => {
     );
 
     if (user.status === false) {
-      return res.status(403).json({ message: "User account is blocked" });
+      return res
+        .status(403)
+        .json({ message: "User account is blocked. Please contact support." });
     }
 
     if (user && !user.isVerified) {
@@ -511,9 +512,9 @@ export const adminLogin = async (
       httpOnly: true,
       domain: "localhost",
       secure: process.env.NODE_ENV !== "development", // Use secure cookies in production
-      sameSite: "lax", // Adjust as needed
+      sameSite: "none", // Adjust as needed
       maxAge: 24 * 60 * 60 * 1000, // 1 day
-      path: "/",
+      // path: "/",
     });
 
     // Send back the user info without sessionToken (since it's in the cookie)
@@ -537,10 +538,10 @@ export const createAdmin = async (
   res: express.Response
 ) => {
   try {
-    const { email, password, name } = req.body;
+    const { email, password, firstName, lastName } = req.body;
 
     // Check if all required fields are provided
-    if (!email || !password || !name) {
+    if (!email || !password || !firstName || !lastName) {
       return res
         .status(400)
         .json({ message: "Email, password, and name are required." });
@@ -554,16 +555,12 @@ export const createAdmin = async (
         .json({ message: "User with this email already exists." });
     }
 
-    // Split name into firstName and lastName
-    const [firstName, ...lastNameArr] = name.split(" ");
-    const lastName = lastNameArr.join(" ");
-
     // Generate a random username for the admin
-    let username = generateRandomUsername(name);
+    let username = generateRandomUsername(`${firstName} ${lastName}`);
 
     // Ensure the generated username is unique
     while (await UserModel.findOne({ username })) {
-      username = generateRandomUsername(name);
+      username = generateRandomUsername(`${firstName} ${lastName}`);
     }
 
     // Generate a random salt and hash the password
@@ -589,7 +586,7 @@ export const createAdmin = async (
 
     return res
       .status(201)
-      .json({ message: "Admin created successfully", userId: savedUser._id });
+      .json({ message: "Admin created successfully", data: savedUser });
   } catch (error) {
     console.error("Error creating admin:", error);
     return res.status(500).json({ message: "Internal server error" });
@@ -645,3 +642,35 @@ export const blockUser = async (
     return res.status(500).json({ message: "Internal server error" });
   }
 };
+
+export const deleteAdmin = async (
+  req: express.Request,
+  res: express.Response
+) => {
+  try {
+    const id = req.params.id;
+
+    // Find the user by email
+    const user = await UserModel.findById(id);
+
+    // If user doesn't exist, return 404
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Prevent deletion if the role is 'super admin'
+    if (user.role === "superadmin") {
+      return res.status(403).json({ message: "Cannot delete a super admin" });
+    }
+
+    // Delete the admin if it's not a super admin
+    await UserModel.findByIdAndDelete(id);
+
+    return res.status(200).json({ message: "Admin deleted successfully" });
+  } catch (err) {
+    console.error("Error deleting admin:", err);
+    return res.status(500).json({ message: "An error occurred" });
+  }
+};
+
+
