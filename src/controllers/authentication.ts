@@ -41,7 +41,7 @@ export const register = async (req: express.Request, res: express.Response) => {
     try {
       await sendOTP(email, otp);
     } catch (error) {
-      console.error("Error sending OTP email:", error);
+      console.error("Error sending OTP email 2:", error);
       return res.status(500).json({ message: "Error sending OTP email" });
     }
 
@@ -190,7 +190,7 @@ export const forgotPassword = async (
     try {
       await sendOTP(email, otp.toString());
     } catch (error) {
-      console.error("Error sending OTP email:", error);
+      console.error("Error sending OTP email 3:", error);
       return res.status(500).json({ message: "Error sending OTP email" });
     }
 
@@ -381,7 +381,7 @@ export const resendOtp = async (
     try {
       await sendOTP(email, otp);
     } catch (error) {
-      console.error("Error sending OTP email:", error);
+      console.error("Error sending OTP email 4:", error);
       return res.status(500).json({ message: "Error sending OTP email" });
     }
 

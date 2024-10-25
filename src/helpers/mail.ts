@@ -1,13 +1,14 @@
 import nodemailer from "nodemailer";
+require("dotenv").config();
 
 // Create a Nodemailer transporter
 const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com", // Your SMTP host
-  port: 587, // Your SMTP port
+  host: process.env.EMAIL_HOST,
+  port: 587,
   secure: false, // true for 465, false for other ports
   auth: {
-    user: "faheemahmad0108@gmail.com", // Your email address
-    pass: "dunoxtnidkbtmceh", // Your email password
+    user: process.env.EMAIL_USERNAME,
+    pass: process.env.EMAIL_PASSWORD,
   },
 });
 
@@ -37,7 +38,7 @@ export const sendOTP = async (email: string, otp: string): Promise<void> => {
   try {
     // Email options
     const emailOptions = {
-      from: "faheemahmad0108@gmail.com", // Sender address (change to your Gmail address)
+      from: process.env.EMAIL_USERNAME, // Sender address (change to your Gmail address)
       to: email,
       subject: "OTP Verification", // Subject line
       text: `Your OTP for registration is: ${otp}`, // Plain text body
@@ -83,8 +84,8 @@ export const sendFeedbackEmail = async (
 
     // Email options
     const emailOptions = {
-      from: "faheemahmad0108@gmail.com", // Sender address (change to your Gmail address)
-      to: "faheemahmad0108@gmail.com", // Change this to your support email
+      from: process.env.EMAIL_USERNAME, // Sender address (change to your Gmail address)
+      to: process.env.EMAIL_USERNAME, // Change this to your support email
       subject: subject,
       text: `Type: ${type}\n\nMessage: ${message}\n\nSource Information:\n${sourceInfo}`,
     };

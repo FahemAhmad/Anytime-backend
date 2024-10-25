@@ -7,7 +7,6 @@ import cors from "cors";
 import mongoose from "mongoose";
 import router from "./router";
 import morgan from "morgan";
-import { createClient } from "redis";
 
 import "dotenv/config";
 require("dotenv").config();
