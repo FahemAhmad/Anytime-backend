@@ -53,7 +53,7 @@ export const getAllTransactions = async (req: Request, res: Response) => {
   }
 };
 
-export const newTransctionByAdmin = async (req: Request, res: Response) => {
+export const newTransactionByAdmin = async (req: Request, res: Response) => {
   try {
     const user = await getUserById(req.body.user);
 
@@ -78,7 +78,7 @@ export const newTransctionByAdmin = async (req: Request, res: Response) => {
 
     await pusherServer.trigger(
       `${req.body.user}-notifications`,
-      "noification:new",
+      "notification:new",
       createdNotification
     );
 

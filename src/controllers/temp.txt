@@ -8,9 +8,11 @@ import {
   updateConversationById,
 } from "../db/conversation";
 import express from "express";
-
+import {
+  getUserDetailsFromRedis,
+  saveConversationDetailsToRedis,
+} from "../lib/redisService";
 import mongoose from "mongoose";
-import { UserModel } from "../db/users";
 
 /**
  * This function creates a new conversation based on the request body.
@@ -63,9 +65,17 @@ export const createConversation = async (
         admin: req.identity._id,
       };
 
-      const userDetails = await UserModel.find({
-        _id: { $in: newConversationObj.userIds },
-      });
+      await saveConversationDetailsToRedis(
+        newConversationObj._id.toString(),
+        newConversationObj
+      );
+
+      // Initialize an array to hold the promises for fetching user details
+      const userDetailsPromises = newConversationObj.userIds.map((userId) =>
+        getUserDetailsFromRedis(userId.toString())
+      );
+
+      const userDetails = await Promise.all(userDetailsPromises);
 
       // get the sender details of all users from redis
       const responseObj = { ...newConversationObj, userIds: userDetails };
@@ -83,12 +93,15 @@ export const createConversation = async (
       return res.status(200).json({ data: newConversation });
     }
 
+    // If the conversation is a single conversation
+
     // Check if the conversation already exists
     const existingConversations = await getExistingConversations(
       req.identity._id,
       userIds[0]
     );
 
+    console.log("existingConver", existingConversations.length);
     const singleConversations = existingConversations[0];
 
     // If the conversation already exists, return the existing conversation
@@ -107,10 +120,16 @@ export const createConversation = async (
       messageIds: [] as any,
     };
 
-    const userDetails = await UserModel.find({
-      _id: { $in: newSingleConversationObj.userIds },
-    });
+    await saveConversationDetailsToRedis(
+      newSingleConversationObj._id.toString(),
+      newSingleConversationObj
+    );
 
+    const userDetailsPromises = newSingleConversationObj.userIds.map((userId) =>
+      getUserDetailsFromRedis(userId.toString())
+    );
+
+    const userDetails = await Promise.all(userDetailsPromises);
     // get the sender details of all users from redis
     const responseObj = { ...newSingleConversationObj, userIds: userDetails };
 
@@ -252,6 +271,8 @@ export const updateGroupDetails = async (
       conversationId,
       updates
     );
+
+    await saveConversationDetailsToRedis(conversationId, updatedConversation);
 
     updatedConversation.userIds.forEach((user: any) => {
       if (user.email) {

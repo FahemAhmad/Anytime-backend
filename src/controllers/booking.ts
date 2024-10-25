@@ -44,7 +44,7 @@ export const bookASpot = async (
     // drop a notification to tutor
     const createdNotification = await createNotification(req.body.tutorId, {
       type: "action",
-      title: MESSAGES.BOOKING_RECIEVED,
+      title: MESSAGES.BOOKING_RECEIVED,
       message: getBookingReceivedNotifications(
         `${userDetails?.firstName || ""} ${userDetails?.lastName || ""}`,
         `${lesson?.subject || ""}`,
@@ -206,7 +206,6 @@ export const addProof = async (
 
     return res.status(200).json({ success: true });
   } catch (err) {
-    console.log("errir", err);
     return res.status(500).json({ error: err.message });
   }
 };

@@ -1,5 +1,4 @@
 import express from "express";
-import { v4 as uuidv4 } from "uuid";
 import {
   createNewMessage,
   getMessagesByConversationId,
@@ -10,11 +9,8 @@ import {
   updateConversation,
 } from "../db/conversation";
 import { pusherServer } from "../lib/pusher";
-import {
-  getUserDetailsFromRedis,
-  saveMessageToRedis,
-} from "../lib/redisService";
 import mongoose from "mongoose";
+import { getUserById } from "../db/users";
 
 export const getMessages = async (
   req: express.Request,
@@ -37,7 +33,6 @@ export const createMessage = async (
   try {
     const { message, conversationId, image } = req.body;
 
-
     //create new mongoose objectId
     const messageId = new mongoose.Types.ObjectId();
 
@@ -54,8 +49,7 @@ export const createMessage = async (
       updatedAt: timestamp,
     };
 
-    await saveMessageToRedis(conversationId, newMessageData);
-    const senderDetails = await getUserDetailsFromRedis(req.identity._id);
+    const senderDetails = await getUserById(req.identity._id);
 
     //make deep copy of newMessage data
     let newMessageDataResponse = { ...newMessageData };
@@ -91,8 +85,7 @@ export const createMessage = async (
       });
     });
   } catch (err) {
-    console.log("erro", err);
-    //return res.status(500).json({ error: err.message });
+    return res.status(500).json({ error: err.message });
   }
 };
 
@@ -102,19 +95,19 @@ export const messageSeen = async (
 ) => {
   try {
     const { id } = req.params;
-    const conversaton = await setConversationMessageSeen(
+    const conversation = await setConversationMessageSeen(
       id,
       req.identity._id.toString()
     );
 
-    if (!conversaton)
+    if (!conversation)
       return res.status(404).json({ error: "Conversation not found" });
 
     //Find last message
     const lastMessage: any =
-      conversaton.messageIds[conversaton.messageIds.length - 1];
+      conversation.messageIds[conversation.messageIds.length - 1];
 
-    if (!lastMessage) return res.status(200).json({ data: conversaton });
+    if (!lastMessage) return res.status(200).json({ data: conversation });
 
     //update seen of last message
     const updatedMessage = await updateMessage(
@@ -130,12 +123,11 @@ export const messageSeen = async (
     pusherServer.trigger(id, "message:update", updatedMessage);
 
     if (lastMessage?.seenIds.indexOf(req.identity?._id.toString()) !== -1) {
-      return res.status(200).json({ data: conversaton });
+      return res.status(200).json({ data: conversation });
     }
 
-    return res.status(200).json({ data: conversaton });
+    return res.status(200).json({ data: conversation });
   } catch (err) {
-    console.log("erro", err);
     return res.status(500).json({ error: err.message });
   }
 };

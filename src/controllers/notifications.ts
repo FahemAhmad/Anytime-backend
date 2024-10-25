@@ -135,12 +135,7 @@ export const createNewNotification = async (
           await pusherServer.trigger(
             `${userId}-notifications`,
             "notification:new",
-            {
-              title,
-              message: content,
-              id: notification._id,
-              admin: true,
-            }
+            notification
           );
 
           return notification;

@@ -1,4 +1,3 @@
-import { saveUserDetailsToRedis } from "../lib/redisService";
 import mongoose from "mongoose";
 
 const UserSchema = new mongoose.Schema(
@@ -97,7 +96,7 @@ const UserSchema = new mongoose.Schema(
       },
     ],
     bookings: [
-      // booking requests recevied by the user
+      // booking requests received by the user
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Booking",
@@ -218,16 +217,7 @@ export const getUserBySessionToken = (sessionToken: string) =>
   });
 export const getUserById = (id: string) => UserModel.findById(id);
 export const createUser = (values: Record<string, any>) =>
-  new UserModel(values).save().then((user) => {
-    const userObject = user.toObject();
-
-    saveUserDetailsToRedis(userObject._id.toString(), userObject).catch(
-      (err) => {
-        console.error("Failed to save user details to Redis:", err);
-      }
-    );
-    return userObject;
-  });
+  new UserModel(values).save();
 
 export const deleteUserById = (id: string) =>
   UserModel.findOneAndDelete({ _id: id });

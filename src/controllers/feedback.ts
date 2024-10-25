@@ -64,7 +64,7 @@ export const getAllFeedbacks = async (req: Request, res: Response) => {
   }
 };
 
-export const reoslveFeedbacks = async (req: Request, res: Response) => {
+export const resolveFeedbacks = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const { resolved } = req.body;

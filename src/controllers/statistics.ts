@@ -446,7 +446,7 @@ export const getLessonStats = async (req: Request, res: Response) => {
 
     // top 5 sessions
     const finishedSessions = topSessionsApiResponse.filter((session) => {
-      // Combine startDate and startTime to create the full start datetime
+      // Combine startDate and startTime to create the full start date & time
       const sessionStart = moment(session.startDate).set({
         hour: parseInt(session.startTime.split(":")[0]),
         minute: parseInt(session.startTime.split(":")[1]),

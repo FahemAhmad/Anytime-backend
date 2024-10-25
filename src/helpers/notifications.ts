@@ -14,7 +14,7 @@ export const getBookingStatusUpdate = (
   return `${tutorName} has ${status} the following lesson request: ${lesson}.`;
 };
 export const MESSAGES = {
-  BOOKING_RECIEVED: "New Booking Request",
+  BOOKING_RECEIVED: "New Booking Request",
   BOOKING_ACCEPTED: "Booking Accepted",
   BOOKING_REJECTED: "Booking Rejected",
   BOOKING_DELIVERED: "Lesson Delivered",

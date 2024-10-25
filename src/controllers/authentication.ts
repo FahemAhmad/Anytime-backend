@@ -14,10 +14,6 @@ import {
   random,
 } from "../helpers";
 import { sendOTP } from "../helpers/mail";
-import {
-  getUserDetailsFromRedis,
-  saveUserDetailsToRedis,
-} from "../lib/redisService";
 
 export const register = async (req: express.Request, res: express.Response) => {
   try {
@@ -63,7 +59,6 @@ export const register = async (req: express.Request, res: express.Response) => {
       otpExpiryTime,
     });
 
-    await saveUserDetailsToRedis(user._id.toString(), user);
     delete user["otp"];
     return res
       .status(200)
@@ -87,7 +82,7 @@ export const login = async (req: express.Request, res: express.Response) => {
       "+authentication.salt +authentication.password"
     );
 
-    if (user.status === false) {
+    if (user?.status && user.status === false) {
       return res
         .status(403)
         .json({ message: "User account is blocked. Please contact support." });
@@ -102,7 +97,7 @@ export const login = async (req: express.Request, res: express.Response) => {
         .status(409)
         .json({ message: "User is registered with other provider" });
 
-    if (!user) return res.status(404).json({ message: "User Not Found" });
+    if (!user) return res.status(404).json({ message: "Invalid Credentials" });
 
     const expectedHash = authentication(user.authentication.salt, password);
 
@@ -119,15 +114,11 @@ export const login = async (req: express.Request, res: express.Response) => {
 
     await user.save();
 
-    //check if user exists else save it to redis
-    const r = await getUserDetailsFromRedis(user._id.toString());
-    if (!r) await saveUserDetailsToRedis(user._id.toString(), user);
     return res
       .status(200)
       .json({ ...user, sessionToken: user.authentication.sessionToken });
   } catch (err) {
     console.log("err", err);
-    console.log("reached phase 5");
     return res.status(400).json({
       message: "Error connecting to server",
     });
@@ -395,7 +386,6 @@ export const resendOtp = async (
     }
 
     // Save updated user details to Redis
-    await saveUserDetailsToRedis(user._id.toString(), user);
     await user.save();
 
     return res
@@ -672,5 +662,3 @@ export const deleteAdmin = async (
     return res.status(500).json({ message: "An error occurred" });
   }
 };
-
-
