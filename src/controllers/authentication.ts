@@ -2,6 +2,7 @@ import {
   UserModel,
   createNewOtpByExpiry,
   createUser,
+  getUserByEmailOrUsername,
   getUserById,
   getUsersByEmail,
 } from "../db/users";
@@ -25,10 +26,17 @@ export const register = async (req: express.Request, res: express.Response) => {
       });
     }
 
-    const existingUser = await getUsersByEmail(email);
+    const existingUser = await getUserByEmailOrUsername(email, username);
 
-    if (existingUser)
-      return res.status(409).json({ message: "Email already exists" });
+    if (existingUser && existingUser.email === email)
+      return res.status(409).json({
+        message: "Another account is already associated with this email",
+      });
+
+    if (existingUser && existingUser.username === username)
+      return res.status(409).json({
+        message: "Username is taken",
+      });
 
     // Generate OTP
     const otp = generateOTP();
@@ -41,12 +49,13 @@ export const register = async (req: express.Request, res: express.Response) => {
     try {
       await sendOTP(email, otp);
     } catch (error) {
-      console.error("Error sending OTP email 2:", error);
-      return res.status(500).json({ message: "Error sending OTP email" });
+      return res
+        .status(500)
+        .json({ message: "Error sending OTP email. Please retry later." });
     }
 
     const salt = random();
-    const user = await createUser({
+    const user: any = await createUser({
       firstName,
       lastName: surName,
       username,
@@ -59,10 +68,12 @@ export const register = async (req: express.Request, res: express.Response) => {
       otpExpiryTime,
     });
 
+    user._doc = { ...user._doc, otpExpiryDuration: expiryDurationInMinutes };
+
     delete user["otp"];
     return res
       .status(200)
-      .json({ ...user, otpExpiryDuration: expiryDurationInMinutes })
+      .json({ ...user })
       .end();
   } catch (err) {
     console.log(err);
@@ -82,13 +93,33 @@ export const login = async (req: express.Request, res: express.Response) => {
       "+authentication.salt +authentication.password"
     );
 
-    if (user?.status && user.status === false) {
+    if (user && !user?.status) {
       return res
         .status(403)
         .json({ message: "User account is blocked. Please contact support." });
     }
 
     if (user && !user.isVerified) {
+      try {
+        const otp = generateOTP();
+
+        const expiryDurationInMinutes = 2;
+        const otpExpiryTime = new Date(
+          Date.now() + expiryDurationInMinutes * 60000
+        );
+
+        user.otpExpiryTime = otpExpiryTime;
+        user.otp = Number(otp);
+
+        await user.save();
+        await sendOTP(email, otp);
+      } catch (error) {
+        return res.status(500).json({
+          message:
+            "Email is not verified. Error sending OTP email for verification. Please retry later.",
+        });
+      }
+
       return res.status(409).json({ message: "Email is not verified" });
     }
 

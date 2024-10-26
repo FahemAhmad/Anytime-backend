@@ -19,17 +19,20 @@ export const isAuthenticated = async (
   try {
     const sessionToken = req?.headers?.authorization?.split(" ")?.[1];
 
-    if (!sessionToken) return res.sendStatus(403);
+    if (!sessionToken) return res.status(403).json({ message: "LOG_OUT" });
 
     const existingUser = await getUserBySessionToken(sessionToken);
 
-    if (!existingUser) return res.sendStatus(403);
+    if (!existingUser) return res.status(403).json({ message: "LOG_OUT" });
+
+    if (!existingUser.status)
+      return res.status(403).json({ message: "LOG_OUT" });
 
     merge(req, { identity: existingUser });
 
     return next();
   } catch (error) {
-    return res.sendStatus(400);
+    return res.status(400);
   }
 };
 

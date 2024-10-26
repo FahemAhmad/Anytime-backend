@@ -176,6 +176,11 @@ export const UserModel = mongoose.model("User", UserSchema);
 export const getUsers = () => UserModel.find().populate("lessons");
 export const getUsersByEmail = (email: string) => UserModel.findOne({ email });
 
+export const getUserByEmailOrUsername = (email: string, username: string) =>
+  UserModel.findOne({
+    $or: [{ email: email }, { username: username }],
+  });
+
 export const searchUsersDb = (searchTerm: string, currentUserId: string) => {
   const searchWords = searchTerm.split(/\s+/).filter((word) => word.length > 0);
   const regexPatterns = searchWords.map((word) => new RegExp(word, "i"));

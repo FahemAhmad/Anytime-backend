@@ -145,12 +145,10 @@ export const payoutToBank = async (
 
     const user = await getUserById(userId);
     if (!user) {
-      console.log("user not found");
       return res.status(404).json({ error: "User not found." });
     }
 
     if (user.credits < amount) {
-      console.log("Insufficient credits");
       return res.status(400).json({ error: "Insufficient credit." });
     }
 
