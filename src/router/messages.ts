@@ -10,4 +10,5 @@ export default (router: express.Router) => {
   router.post(`/messages/:id/seen`, isAuthenticated, messageSeen);
   router.get(`/messages/:id`, isAuthenticated, getMessages);
   router.post(`/messages`, isAuthenticated, createMessage);
+  
 };
