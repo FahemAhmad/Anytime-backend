@@ -1,11 +1,14 @@
 {
   "compilerOptions": {
-    "module": "NodeNext",
-    "moduleResolution": "Node16",
-    "outDir": "dist",
-    "baseUrl": "src",
-    "sourceMap": true,
-    "noImplicitAny": true
+    "outDir": "./dist", // Output directory for compiled JS files
+    "module": "commonjs", // Node.js uses CommonJS modules
+    "target": "es6", // JavaScript version target
+    "sourceMap": false, // Disable source maps for production
+    "strict": true, // Enable strict type checking
+    "esModuleInterop": true, // Allow ES module imports
+    "skipLibCheck": true, // Skip type checking for node_modules
+    "removeComments": true // Remove comments from output
   },
-  "include": ["src/**/*"]
+  "include": ["src/**/*"], // Files to compile
+  "exclude": ["node_modules", "dist"]
 }
