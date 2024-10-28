@@ -4,11 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "npx pm2 start dist/index.js --name 'anytimepractice-backend'",
-    "stop": "npx pm2 stop anytimepractice-backend",
-    "restart": "npx pm2 restart anytimepractice-backend",
-    "delete": "npx pm2 delete anytimepractice-backend",
-    "logs": "npx pm2 logs anytimepractice-backend",
+    "start": "node dist/index.js",
     "dev": "nodemon src/index.ts",
     "build": "npx tsc",
     "prestart": "npm run build",
