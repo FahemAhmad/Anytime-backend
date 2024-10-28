@@ -22,14 +22,14 @@ export const createNewLesson = async (
     });
 
     // save lesson to user table
-    const user = await getUserById(req.identity._id);
+    const user: any = await getUserById(req.identity._id);
 
     user.lessons.push(newLesson._id);
 
     await user.save();
 
     return res.status(200).json(newLesson);
-  } catch (err) {
+  } catch (err: any) {
     console.log("error", err);
     return res.status(500).json({ error: err.message });
   }
@@ -43,7 +43,7 @@ export const getOfferedLessons = async (
   try {
     const lessons = await getOfferedLessonsDb(req.identity._id);
     return res.status(200).json({ data: lessons });
-  } catch (err) {
+  } catch (err: any) {
     return res.status(500).json({ error: err.message });
   }
 };
@@ -55,7 +55,7 @@ export const deleteOffering = async (
 ) => {
   try {
     const { lessonId } = req.identity;
-    const user = await getUserById(req.identity._id);
+    const user: any = await getUserById(req.identity._id);
 
     const lesson = await deleteLessonByIdDb(lessonId);
 
@@ -68,7 +68,7 @@ export const deleteOffering = async (
     await user.save();
 
     return res.status(200).json({ success: true });
-  } catch (err) {
+  } catch (err: any) {
     return res.status(500).json({ error: err.message });
   }
 };
@@ -79,7 +79,7 @@ export const getBookedLessonsOfuser = async (
 ) => {
   try {
     //from bookings also, populate lessons
-    const user = await getUserById(req.identity._id).populate({
+    const user: any = await getUserById(req.identity._id).populate({
       path: "bookings",
       populate: [
         { path: "lessonId" },
@@ -91,7 +91,7 @@ export const getBookedLessonsOfuser = async (
     });
 
     return res.status(200).json({ data: user.bookings });
-  } catch (err) {
+  } catch (err: any) {
     console.log("err", err);
     return res.status(500).json({ error: err.message });
   }

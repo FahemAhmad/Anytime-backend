@@ -108,8 +108,8 @@ export const followUnfollowUser = async (
     const userToFollow = req.body.tutor;
 
     // Update follow
-    const userFollowing = await getUserById(id);
-    const tutorFollowed = await getUserById(userToFollow);
+    const userFollowing: any = await getUserById(id);
+    const tutorFollowed: any = await getUserById(userToFollow);
 
     if (isFollow) {
       if (userFollowing?.following) {
@@ -164,7 +164,9 @@ export const tutorFollowers = async (
     const tutorDetails = getUserById(tutorId as string);
 
     // also populate following
-    const data = await tutorDetails.populate("followers").populate("following");
+    const data: any = await tutorDetails
+      .populate("followers")
+      .populate("following");
     return res
       .status(200)
       .send({ followers: data.followers, following: data.following });
@@ -212,7 +214,7 @@ export const getStatistics = async (
     const yearlyStats = Array.from({ length: 5 }, (_, index) => {
       const year = new Date().getFullYear() - index;
       const count = allTimeBookings.filter(
-        (booking) => new Date(booking.dateStamp).getFullYear() === year
+        (booking: any) => new Date(booking?.dateStamp).getFullYear() === year
       ).length;
       return { year: year.toString(), count };
     }).reverse();
@@ -236,8 +238,8 @@ export const getStatistics = async (
       const endDate = new Date(thirtyDaysAgo);
       endDate.setDate(endDate.getDate() + endDay);
 
-      const count = last30DaysBookings.filter((booking) => {
-        const bookingDate = new Date(booking.dateStamp);
+      const count = last30DaysBookings.filter((booking: any) => {
+        const bookingDate = new Date(booking?.dateStamp);
         return bookingDate >= startDate && bookingDate <= endDate;
       }).length;
 
@@ -265,7 +267,7 @@ export const getStatistics = async (
       date.setDate(date.getDate() + index);
       const dateString = date.toISOString().split("T")[0];
       const count = last7DaysBookings.filter(
-        (booking) => booking.dateStamp.split("T")[0] === dateString
+        (booking: any) => booking.dateStamp.split("T")[0] === dateString
       ).length;
       return { date: dateString, count };
     });
@@ -454,7 +456,7 @@ export const deductCredits = async (
       return res.status(400).json({ error: "Insufficient credits" });
     }
 
-    const updatedUser = await updateUserById(userId, {
+    const updatedUser: any = await updateUserById(userId, {
       $inc: { credits: -amount },
     });
 
@@ -585,5 +587,3 @@ export const getAllAdmins = async (
     return res.status(500).json({ message: "Server error" });
   }
 };
-
-

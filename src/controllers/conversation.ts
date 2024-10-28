@@ -128,7 +128,7 @@ export const createConversation = async (
 
     // Send a 200 response with the new conversation data
     return res.status(200).json({ data: newSingleConversation });
-  } catch (error) {
+  } catch (error: any) {
     console.log("error", error);
     // If there is an error, send a 500 error with the error message
     return res.status(500).json({ error: error.message });
@@ -146,7 +146,7 @@ export const getUserConversations = async (
     const conversations = await getUserConversationByUserId(userId);
 
     return res.status(200).json({ data: conversations });
-  } catch (error) {
+  } catch (error: any) {
     console.log("ero", error);
     return res.status(500).json({ error: error.message });
   }
@@ -175,7 +175,7 @@ export const getConversationByConversationId = async (
     } else {
       return res.status(401).json({ error: "Unauthorized" });
     }
-  } catch (err) {
+  } catch (err: any) {
     return res.status(500).json({ error: err.message });
   }
 };
@@ -214,7 +214,7 @@ export const deleteConversation = async (
     return res
       .status(200)
       .json({ message: "Conversation deleted successfully" });
-  } catch (err) {
+  } catch (err: any) {
     return res.status(500).json({ error: err.message });
   }
 };
@@ -227,7 +227,7 @@ export const updateGroupDetails = async (
     const { conversationId } = req.params;
     const { name, subject, testDate, groupImage, userIds } = req.body;
 
-    const conversation = await getConversationById(conversationId);
+    const conversation: any = await getConversationById(conversationId);
 
     if (!conversation) {
       return res.status(404).json({ error: "Conversation not found" });
@@ -248,7 +248,7 @@ export const updateGroupDetails = async (
     if (groupImage) updates.groupImage = groupImage;
     if (userIds) updates.userIds = userIds;
 
-    const updatedConversation = await updateConversationById(
+    const updatedConversation: any = await updateConversationById(
       conversationId,
       updates
     );
@@ -264,7 +264,7 @@ export const updateGroupDetails = async (
     });
 
     return res.status(200).json({ data: updatedConversation });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error updating group details:", error);
     return res.status(500).json({ error: error.message });
   }

@@ -328,7 +328,7 @@ export const oauthLogin = async (
         password: "",
         sessionToken: token,
       },
-      avatarUrl: "",
+      avatarUrl = "",
       otp = "",
       otpExpiryTime = "",
       isOtpVerified = true,
@@ -430,12 +430,12 @@ export const resendOtp = async (
 };
 
 export const changePassword = async (
-  req: express.Request & { identity: any },
+  req: express.Request,
   res: express.Response
 ) => {
   try {
     const { oldPassword, newPassword } = req.body;
-    const userId = req.identity._id;
+    const userId = (req as any)?.identity._id;
 
     if (!oldPassword || !newPassword) {
       return res.status(400).json({ message: "Invalid Data" });

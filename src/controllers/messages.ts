@@ -63,7 +63,7 @@ export const createMessage = async (
     );
     res.status(200).json({ data: newMessageDataResponse });
 
-    const newMessage = await createNewMessage(newMessageData);
+    const newMessage: any = await createNewMessage(newMessageData);
 
     await newMessage.save();
     const returnedConversation = await updateConversation(

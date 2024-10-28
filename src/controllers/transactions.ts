@@ -15,7 +15,7 @@ export const getUserTransactions = async (
 ) => {
   try {
     const userId = req.identity._id;
-    const user = await getUserById(userId);
+    const user: any = await getUserById(userId);
     const transactions = await getTransactionsByUserId(userId);
 
     return res.status(200).json({

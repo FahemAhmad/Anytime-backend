@@ -30,13 +30,14 @@ export const bookASpot = async (
       tutorId: req.body.tutorId,
     });
 
-    const userDetails = await getUserById(req.identity._id);
-    const tutor = await getUserById(req.body.tutorId);
+    const userDetails: any = await getUserById(req.identity._id);
+    const tutor: any = await getUserById(req.body.tutorId);
 
-    if (userDetails.bookings) userDetails.bookings.push(newBooking._id);
+    if (userDetails && userDetails.bookings)
+      userDetails.bookings.push(newBooking._id);
     else userDetails.bookings = [newBooking._id];
 
-    if (tutor.bookings) tutor.bookings.push(newBooking._id);
+    if (tutor && tutor.bookings) tutor.bookings.push(newBooking._id);
     else tutor.bookings = [newBooking._id];
 
     const lesson = await getLessonDetailsByIdDb(req.body.lessonId);
@@ -70,7 +71,7 @@ export const bookASpot = async (
     return res.status(200).json(newBooking);
 
     // update the spot from lesson table
-  } catch (err) {
+  } catch (err: any) {
     console.log("error", err);
     return res.status(500).json({ error: err.message });
   }
@@ -115,7 +116,7 @@ export const bookingPayed = async (
     }
 
     return res.status(200).json(transaction);
-  } catch (err) {
+  } catch (err: any) {
     console.log("console.log", err);
 
     return res.status(500).json({ error: err.message });
@@ -165,7 +166,7 @@ export const changeBookingStatus = async (
     await bookings.save();
 
     return res.status(200).json({ success: true });
-  } catch (err) {
+  } catch (err: any) {
     return res.status(500).json({ error: err.message });
   }
 };
@@ -205,7 +206,7 @@ export const addProof = async (
     );
 
     return res.status(200).json({ success: true });
-  } catch (err) {
+  } catch (err: any) {
     return res.status(500).json({ error: err.message });
   }
 };
@@ -227,7 +228,7 @@ export const addFeedback = async (
     };
 
     await bookings.save();
-    const tutor = await getUserById(bookings.tutorId as any);
+    const tutor: any = await getUserById(bookings.tutorId as any);
 
     if (tutor.ratings === "N/A") {
       tutor.ratings = req.body.rating;
@@ -248,8 +249,7 @@ export const addFeedback = async (
     await tutor.save();
 
     return res.status(200).json({ success: true });
-  } catch (err) {
-    console.log("err", err);
+  } catch (err: any) {
     return res.status(500).json({ error: err.message });
   }
 };

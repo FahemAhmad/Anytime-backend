@@ -25,7 +25,9 @@ export const createNewComment = async (
     if (isReply) {
       //since its a reply to a comment. first get that comment
 
-      const existingComment = await getCommentByCommentIdDB(parentCommentId);
+      const existingComment: any = await getCommentByCommentIdDB(
+        parentCommentId
+      );
 
       //add the new comment to existing comment replies
       existingComment.replies.push(newComment._id);
@@ -52,14 +54,14 @@ export const createNewComment = async (
 
     if (!isReply) {
       //get session and update its comments as well
-      const response = await getSessionByIdDB(sessionId);
+      const response: any = await getSessionByIdDB(sessionId);
       // add new comment to session
       response.comments.push(savedComment._id);
       await response.save();
     }
 
     return res.status(201).json({ comment: {} });
-  } catch (error) {
+  } catch (error: any) {
     return res.status(500).json({ error: error.message });
   }
 };
@@ -81,7 +83,9 @@ export const likeDislikeAComment = async (
 
     if (parentCommentId) {
       //since its a reply to a comment. first get that comment
-      const existingComment = await getCommentByCommentIdDB(parentCommentId);
+      const existingComment: any = await getCommentByCommentIdDB(
+        parentCommentId
+      );
       let returnedComment = await existingComment.populate({
         path: "userId",
         select: "_id firstName lastName avatarUrl",
@@ -105,7 +109,7 @@ export const likeDislikeAComment = async (
     return res.status(200).json({
       comment: newComment,
     });
-  } catch (error) {
+  } catch (error: any) {
     return res.status(500).json({ error: error.message });
   }
 };

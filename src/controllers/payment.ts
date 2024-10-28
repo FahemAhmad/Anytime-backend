@@ -20,13 +20,13 @@ export const initStripe = async (
     const stripe = getStripe();
 
     const { price } = req.body;
-    const user = await getUserById(req.identity._id);
+    const user: any = await getUserById(req.identity._id);
 
     const paymentIntent = await stripe.paymentIntents.create({
       amount: Math.round(parseFloat(price)),
       currency: "usd",
       payment_method_types: ["card"],
-      customer: user?.stripeCustomerId,
+      customer: user?.stripeCustomerId || "",
     });
 
     return res.status(200).json({
@@ -88,7 +88,7 @@ export const addCredits = async (
       return res.status(404).json({ error: "User not found" });
     }
 
-    const updatedUser = await updateUserById(userId, {
+    const updatedUser: any = await updateUserById(userId, {
       $inc: { credits: amount },
     });
 
@@ -177,7 +177,7 @@ export const payoutToBank = async (
               },
         });
 
-        const connectedAccount = await stripe.accounts.create({
+        const connectedAccount: any = await stripe.accounts.create({
           type: "custom",
           country: country,
           business_type: "individual",
@@ -215,13 +215,13 @@ export const payoutToBank = async (
         });
 
         connectedAccountId = connectedAccount.id;
-        bankAccountId = connectedAccount.external_accounts.data[0].id;
+        bankAccountId = connectedAccount?.external_accounts.data[0].id;
 
         await updateUserById(userId, {
           stripeConnectedAccountId: connectedAccountId,
           stripeBankAccountId: bankAccountId,
         });
-      } catch (error) {
+      } catch (error: any) {
         console.log("failed to create connected account", error);
         return res.status(400).json({
           error: "Failed to create connected account with external account",
@@ -231,7 +231,9 @@ export const payoutToBank = async (
     }
 
     // Check if the connected account has unmet requirements
-    const account = await stripe.accounts.retrieve(connectedAccountId);
+    const account: any = await stripe.accounts.retrieve(
+      connectedAccountId as any
+    );
     if (account.requirements.currently_due.length > 0) {
       console.log("unmet requirements", account.requirements.currently_due);
       return res.status(400).json({
@@ -249,14 +251,14 @@ export const payoutToBank = async (
       const transfer = await stripe.transfers.create({
         amount: amount * 100, // amount in cents
         currency: "usd",
-        destination: connectedAccountId,
+        destination: connectedAccountId || "",
       });
 
       console.log("Funds transferred to connected account:", transfer.id);
 
       // Implement a delay to allow transfer to process
       await new Promise((resolve) => setTimeout(resolve, 2000));
-    } catch (error) {
+    } catch (error: any) {
       console.log("Failed to transfer funds to connected account", error);
       return res.status(400).json({
         error: "Failed to transfer funds to connected account",
@@ -272,7 +274,7 @@ export const payoutToBank = async (
           currency: currency,
         },
         {
-          stripeAccount: connectedAccountId,
+          stripeAccount: connectedAccountId || "",
         }
       );
 
@@ -297,14 +299,14 @@ export const payoutToBank = async (
           ? updatedUser.credits
           : user.credits - amount,
       });
-    } catch (error) {
+    } catch (error: any) {
       console.log("Failed to create payout", error);
       return res.status(400).json({
         error: "Failed to create payout",
         details: error.message,
       });
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error initiating payout:", error);
     if (error.type && error.type.includes("Stripe")) {
       return res.status(400).json({ error: error.message });
