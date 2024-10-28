@@ -8,7 +8,7 @@ import express from "express";
 import { getSessionByIdDB } from "../db/session";
 
 export const createNewComment = async (
-  req: express.Request & { identity: any },
+  req: express.Request,
   res: express.Response
 ) => {
   try {
@@ -17,7 +17,7 @@ export const createNewComment = async (
     const newComment = createNewCommentDb(
       comment,
       sessionId,
-      req.identity._id,
+      (req as any).identity._id,
       isReply
     );
 
@@ -68,7 +68,7 @@ export const createNewComment = async (
 
 // function to link and dislike a comment
 export const likeDislikeAComment = async (
-  req: express.Request & { identity: any },
+  req: express.Request,
   res: express.Response
 ) => {
   try {
@@ -77,7 +77,7 @@ export const likeDislikeAComment = async (
     const newComment = await likeDislikeACommentDb(
       commentId,
       like,
-      req.identity._id,
+      (req as any).identity._id,
       isReverse
     );
 

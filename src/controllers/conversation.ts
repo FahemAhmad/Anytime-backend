@@ -26,7 +26,7 @@ import { UserModel } from "../db/users";
  * @returns {Promise<void>} The function does not return anything, but sends a response with the conversation data.
  */
 export const createConversation = async (
-  req: express.Request & { identity: any },
+  req: express.Request,
   res: express.Response
 ) => {
   try {
@@ -59,8 +59,8 @@ export const createConversation = async (
         subject,
         testDate,
         messageIds: [] as any,
-        userIds: [...userIds, req.identity._id],
-        admin: req.identity._id,
+        userIds: [...userIds, (req as any).identity._id],
+        admin: (req as any).identity._id,
       };
 
       const userDetails = await UserModel.find({
@@ -85,7 +85,7 @@ export const createConversation = async (
 
     // Check if the conversation already exists
     const existingConversations = await getExistingConversations(
-      req.identity._id,
+      (req as any).identity._id,
       userIds[0]
     );
 
@@ -103,7 +103,7 @@ export const createConversation = async (
       modifiedAt: timestamp,
       name,
       isGroup,
-      userIds: [...userIds, req.identity._id],
+      userIds: [...userIds, (req as any).identity._id],
       messageIds: [] as any,
     };
 
@@ -137,11 +137,11 @@ export const createConversation = async (
 
 // Get User Conversations
 export const getUserConversations = async (
-  req: express.Request & { identity: any },
+  req: express.Request,
   res: express.Response
 ) => {
   try {
-    const userId = req.identity._id;
+    const userId = (req as any).identity._id;
 
     const conversations = await getUserConversationByUserId(userId);
 
@@ -154,7 +154,7 @@ export const getUserConversations = async (
 
 //get conversation by Id
 export const getConversationByConversationId = async (
-  req: express.Request & { identity: any },
+  req: express.Request,
   res: express.Response
 ) => {
   try {
@@ -168,7 +168,7 @@ export const getConversationByConversationId = async (
 
     if (conversation) {
       conversation.userIds.forEach((user: any) => {
-        if (user._id.toString() === req.identity._id.toString()) {
+        if (user._id.toString() === (req as any).identity._id.toString()) {
           return res.status(200).json({ data: conversation });
         }
       });
@@ -181,7 +181,7 @@ export const getConversationByConversationId = async (
 };
 
 export const deleteConversation = async (
-  req: express.Request & { identity: any },
+  req: express.Request,
   res: express.Response
 ) => {
   try {
@@ -200,7 +200,7 @@ export const deleteConversation = async (
     if (conversation) {
       //remove from userIds
       conversation.userIds.forEach((user: any) => {
-        if (user._id.toString() === req.identity._id.toString()) {
+        if (user._id.toString() === (req as any).identity._id.toString()) {
           //remove from userIds
           const index = conversation.userIds.indexOf(user);
           if (index > -1) {
@@ -220,7 +220,7 @@ export const deleteConversation = async (
 };
 
 export const updateGroupDetails = async (
-  req: express.Request & { identity: any },
+  req: express.Request,
   res: express.Response
 ) => {
   try {
@@ -234,7 +234,9 @@ export const updateGroupDetails = async (
     }
 
     // Check if the user is the admin of the group
-    if (conversation.admin.toString() !== req.identity._id.toString()) {
+    if (
+      conversation.admin.toString() !== (req as any).identity._id.toString()
+    ) {
       return res
         .status(403)
         .json({ error: "Only the admin can update group details" });

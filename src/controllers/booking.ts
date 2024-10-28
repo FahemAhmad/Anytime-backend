@@ -17,7 +17,7 @@ import { createTransaction } from "../db/transactions";
 
 //create a new lesson
 export const bookASpot = async (
-  req: express.Request & { identity: any },
+  req: express.Request,
   res: express.Response
 ) => {
   try {
@@ -26,11 +26,11 @@ export const bookASpot = async (
     // save booking to user table
     const newBooking = await createNewBookingDb({
       ...body,
-      userId: req.identity._id,
+      userId: (req as any).identity._id,
       tutorId: req.body.tutorId,
     });
 
-    const userDetails: any = await getUserById(req.identity._id);
+    const userDetails: any = await getUserById((req as any).identity._id);
     const tutor: any = await getUserById(req.body.tutorId);
 
     if (userDetails && userDetails.bookings)
@@ -78,14 +78,14 @@ export const bookASpot = async (
 };
 
 export const bookingPayed = async (
-  req: express.Request & { identity: any },
+  req: express.Request,
   res: express.Response
 ) => {
   try {
     // Create a new booking
     const bookingId = req.params.id;
     const { paymentIntentId, amount } = req.body;
-    const userId = req.identity._id;
+    const userId = (req as any).identity._id;
 
     const isPaidQuery = req.query.isPaid;
     const isPaid = isPaidQuery !== undefined ? isPaidQuery === "true" : true;
@@ -124,7 +124,7 @@ export const bookingPayed = async (
 };
 
 export const changeBookingStatus = async (
-  req: express.Request & { identity: any },
+  req: express.Request,
   res: express.Response
 ) => {
   try {
@@ -171,10 +171,7 @@ export const changeBookingStatus = async (
   }
 };
 
-export const addProof = async (
-  req: express.Request & { identity: any },
-  res: express.Response
-) => {
+export const addProof = async (req: express.Request, res: express.Response) => {
   try {
     const bookingId = req.params.id;
 
@@ -212,7 +209,7 @@ export const addProof = async (
 };
 
 export const addFeedback = async (
-  req: express.Request & { identity: any },
+  req: express.Request,
   res: express.Response
 ) => {
   try {

@@ -39,7 +39,7 @@ export const getAllUsers = async (
 };
 
 export const searchUsers = async (
-  req: express.Request & { identity: any },
+  req: express.Request,
   res: express.Response
 ) => {
   try {
@@ -49,7 +49,10 @@ export const searchUsers = async (
       return res.status(400).json({ message: "Email is required" });
     }
 
-    const users = await searchUsersDb(value as string, req.identity._id);
+    const users = await searchUsersDb(
+      value as string,
+      (req as any).identity._id
+    );
 
     return res.status(200).json(users).end();
   } catch (error) {
@@ -59,7 +62,7 @@ export const searchUsers = async (
 };
 
 export const getTutors = async (
-  req: express.Request & { identity: any },
+  req: express.Request,
   res: express.Response
 ) => {
   try {
@@ -96,12 +99,12 @@ export const getTutors = async (
 };
 
 export const followUnfollowUser = async (
-  req: express.Request & { identity: any },
+  req: express.Request,
   res: express.Response
 ) => {
   try {
     // Get current user who is following
-    const id = req.identity._id;
+    const id = (req as any).identity._id;
     const isFollow = req.query.follow === "true";
 
     // Get user who is being followed
@@ -155,7 +158,7 @@ export const followUnfollowUser = async (
 };
 
 export const tutorFollowers = async (
-  req: express.Request & { identity: any },
+  req: express.Request,
   res: express.Response
 ) => {
   try {
@@ -189,11 +192,11 @@ const calculateStatusDistribution = (bookings: any[]) => {
 };
 
 export const getStatistics = async (
-  req: express.Request & { identity: any },
+  req: express.Request,
   res: express.Response
 ) => {
   try {
-    const userId = req.identity._id;
+    const userId = (req as any).identity._id;
 
     // All-time statistics
     const startDate = new Date();
@@ -299,11 +302,11 @@ export const getStatistics = async (
   }
 };
 export const updateProfile = async (
-  req: express.Request & { identity: any },
+  req: express.Request,
   res: express.Response
 ) => {
   try {
-    const userId = req.identity._id;
+    const userId = (req as any).identity._id;
     const {
       firstName,
       lastName,
@@ -346,12 +349,9 @@ export const updateProfile = async (
   }
 };
 
-export const addCard = async (
-  req: express.Request & { identity: any },
-  res: express.Response
-) => {
+export const addCard = async (req: express.Request, res: express.Response) => {
   try {
-    const userId = req.identity._id;
+    const userId = (req as any).identity._id;
     const { last4, brand, stripePaymentMethodId } = req.body;
 
     const user = await getUserById(userId);
@@ -404,11 +404,11 @@ export const addCard = async (
 };
 
 export const removeCard = async (
-  req: express.Request & { identity: any },
+  req: express.Request,
   res: express.Response
 ) => {
   try {
-    const userId = req.identity._id;
+    const userId = (req as any).identity._id;
     const { stripePaymentMethodId } = req.body;
 
     const updatedUser = await removeCardFromUser(userId, stripePaymentMethodId);
@@ -425,11 +425,11 @@ export const removeCard = async (
 };
 
 export const getUserCards = async (
-  req: express.Request & { identity: any },
+  req: express.Request,
   res: express.Response
 ) => {
   try {
-    const userId = req.identity._id;
+    const userId = (req as any).identity._id;
     const cards = await getCardsByUserId(userId);
     res.status(200).json({ cards });
   } catch (error) {
@@ -439,11 +439,11 @@ export const getUserCards = async (
 };
 
 export const deductCredits = async (
-  req: express.Request & { identity: any },
+  req: express.Request,
   res: express.Response
 ) => {
   try {
-    const userId = req.identity._id;
+    const userId = (req as any).identity._id;
     const { amount, bookingId } = req.body; // Add lessonId to the request body
 
     const user = await getUserById(userId);

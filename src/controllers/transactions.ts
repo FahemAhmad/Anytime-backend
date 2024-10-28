@@ -14,7 +14,7 @@ export const getUserTransactions = async (
   res: Response
 ) => {
   try {
-    const userId = req.identity._id;
+    const userId = (req as any).identity._id;
     const user: any = await getUserById(userId);
     const transactions = await getTransactionsByUserId(userId);
 

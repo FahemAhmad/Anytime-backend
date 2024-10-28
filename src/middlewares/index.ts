@@ -69,7 +69,7 @@ export const authenticateAdmin = async (
     }
 
     // Find the user associated with the session token
-    const user = await UserModel.findOne({
+    const user: any = await UserModel.findOne({
       "authentication.sessionToken": sessionToken,
     });
 

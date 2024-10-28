@@ -27,7 +27,7 @@ export const getMessages = async (
 };
 
 export const createMessage = async (
-  req: express.Request & { identity: any },
+  req: express.Request,
   res: express.Response
 ) => {
   try {
@@ -43,13 +43,13 @@ export const createMessage = async (
       message,
       image,
       conversationId,
-      senderId: req.identity._id,
-      seenIds: [req.identity._id],
+      senderId: (req as any).identity._id,
+      seenIds: [(req as any).identity._id],
       createdAt: timestamp,
       updatedAt: timestamp,
     };
 
-    const senderDetails = await getUserById(req.identity._id);
+    const senderDetails = await getUserById((req as any).identity._id);
 
     //make deep copy of newMessage data
     let newMessageDataResponse = { ...newMessageData };
@@ -90,14 +90,14 @@ export const createMessage = async (
 };
 
 export const messageSeen = async (
-  req: express.Request & { identity: any },
+  req: express.Request,
   res: express.Response
 ) => {
   try {
     const { id } = req.params;
     const conversation = await setConversationMessageSeen(
       id,
-      req.identity._id.toString()
+      (req as any).identity._id.toString()
     );
 
     if (!conversation)
@@ -111,18 +111,20 @@ export const messageSeen = async (
 
     //update seen of last message
     const updatedMessage = await updateMessage(
-      req.identity?._id.toString(),
+      (req as any).identity._id.toString(),
       lastMessage._id.toString()
     );
 
-    pusherServer.trigger(req.identity.email, "conversation:update", {
+    pusherServer.trigger((req as any)?.identity.email, "conversation:update", {
       id,
       messageIds: [updatedMessage],
     });
 
     pusherServer.trigger(id, "message:update", updatedMessage);
 
-    if (lastMessage?.seenIds.indexOf(req.identity?._id.toString()) !== -1) {
+    if (
+      lastMessage?.seenIds.indexOf((req as any).identity._id.toString()) !== -1
+    ) {
       return res.status(200).json({ data: conversation });
     }
 

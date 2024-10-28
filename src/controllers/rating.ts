@@ -2,7 +2,7 @@ import { findRatingBySessionIdDb } from "../db/rating";
 import express from "express";
 
 export const updateRating = async (
-  req: express.Request & { identity: any },
+  req: express.Request,
   res: express.Response
 ) => {
   try {
@@ -22,11 +22,11 @@ export const updateRating = async (
     // Update the rating document
     rating.rating = newRating;
     rating.ratedBy = newTotalRatings;
-    if (!rating?.ratedByUsers?.includes(req.identity._id)) {
+    if (!rating?.ratedByUsers?.includes((req as any).identity._id)) {
       if (!rating.ratedByUsers) {
-        rating.ratedByUsers = [req.identity._id];
-      } else if (!rating.ratedByUsers.includes(req.identity._id)) {
-        rating.ratedByUsers.push(req.identity._id);
+        rating.ratedByUsers = [(req as any).identity._id];
+      } else if (!rating.ratedByUsers.includes((req as any).identity._id)) {
+        rating.ratedByUsers.push((req as any).identity._id);
       }
     }
     await rating.save();

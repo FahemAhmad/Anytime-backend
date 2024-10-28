@@ -37,7 +37,7 @@ export const sendEmail = async (options: EmailOptions): Promise<void> => {
 export const sendOTP = async (email: string, otp: string): Promise<void> => {
   try {
     // Email options
-    const emailOptions = {
+    const emailOptions: any = {
       from: process.env.EMAIL_USERNAME, // Sender address (change to your Gmail address)
       to: email,
       subject: "OTP Verification", // Subject line
@@ -83,7 +83,7 @@ export const sendFeedbackEmail = async (
       .join("\n");
 
     // Email options
-    const emailOptions = {
+    const emailOptions: any = {
       from: process.env.EMAIL_USERNAME, // Sender address (change to your Gmail address)
       to: process.env.EMAIL_USERNAME, // Change this to your support email
       subject: subject,

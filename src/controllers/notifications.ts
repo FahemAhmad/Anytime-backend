@@ -7,11 +7,11 @@ import {
 import express from "express";
 
 export const getNotifications = async (
-  req: express.Request & { identity: any },
+  req: express.Request,
   res: express.Response
 ) => {
   try {
-    const id = req.identity._id;
+    const id = (req as any).identity._id;
     const notifications = await NotificationModel.find({
       $or: [{ user: id }, { admin: true }],
     })
@@ -24,12 +24,12 @@ export const getNotifications = async (
 };
 
 export const markAsRead = async (
-  req: express.Request & { identity: any },
+  req: express.Request,
   res: express.Response
 ) => {
   try {
     const { notificationId } = req.params;
-    const userId = req.identity._id;
+    const userId = (req as any).identity._id;
 
     const updatedNotification = await markNotificationAsRead(notificationId);
 
@@ -51,11 +51,11 @@ export const markAsRead = async (
 };
 
 export const markAllAsRead = async (
-  req: express.Request & { identity: any },
+  req: express.Request,
   res: express.Response
 ) => {
   try {
-    const userId = req.identity._id;
+    const userId = (req as any).identity._id;
 
     await NotificationModel.updateMany(
       { user: userId, isRead: false },
@@ -71,7 +71,7 @@ export const markAllAsRead = async (
 };
 
 export const allNotificationsByAdmin = async (
-  req: express.Request & { identity: any },
+  req: express.Request,
   res: express.Response
 ) => {
   try {

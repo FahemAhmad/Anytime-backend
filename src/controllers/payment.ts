@@ -13,14 +13,14 @@ const getStripe = () => {
 };
 
 export const initStripe = async (
-  req: express.Request & { identity: any },
+  req: express.Request,
   res: express.Response
 ) => {
   try {
     const stripe = getStripe();
 
     const { price } = req.body;
-    const user: any = await getUserById(req.identity._id);
+    const user: any = await getUserById((req as any).identity._id);
 
     const paymentIntent = await stripe.paymentIntents.create({
       amount: Math.round(parseFloat(price)),
@@ -76,12 +76,12 @@ export const attachPaymentMethodToCustomer = async (
 };
 
 export const addCredits = async (
-  req: express.Request & { identity: any },
+  req: express.Request,
   res: express.Response
 ) => {
   try {
     const { amount, paymentIntent } = req.body;
-    const userId = req.identity._id;
+    const userId = (req as any).identity._id;
     const user = await getUserById(userId);
 
     if (!user) {
@@ -111,12 +111,12 @@ export const addCredits = async (
 };
 
 export const payoutToBank = async (
-  req: express.Request & { identity: any },
+  req: express.Request,
   res: express.Response
 ) => {
   const stripe = getStripe();
   try {
-    const userId = req.identity._id;
+    const userId = (req as any).identity._id;
     let {
       amount,
       currency,

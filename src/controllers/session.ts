@@ -15,7 +15,7 @@ interface LiveSession extends Document {
 }
 
 export const createNewSession = async (
-  req: express.Request & { identity: any },
+  req: express.Request,
   res: express.Response
 ) => {
   try {
@@ -45,7 +45,7 @@ export const createNewSession = async (
 
     const newRating = await createNewRatingDb({
       sessionId: newSession._id,
-      instructorId: req.identity._id,
+      instructorId: (req as any).identity._id,
     });
 
     newSession.ratings = newRating._id;
@@ -57,7 +57,6 @@ export const createNewSession = async (
 
     const tutor = await getUserById(tutorId);
 
-    console.log("tutor", tutor.followers);
     if (tutor && tutor.followers.length > 0) {
       // Create a notification for each follower
       const notificationPromises = tutor.followers.map(
@@ -85,7 +84,7 @@ export const createNewSession = async (
     }
 
     return res.status(200).json({ data: newSession });
-  } catch (err) {
+  } catch (err: any) {
     console.log("er", err);
     return res.status(500).json({ error: err.message });
   }
@@ -124,7 +123,7 @@ export const getAllSessionsWithLiveFirst = async (
     });
 
     res.status(200).json({ data: sessions });
-  } catch (error) {
+  } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
 };
@@ -136,7 +135,7 @@ export const getSessionById = async (
   try {
     const newSession = await getSessionByIdDB(req.params.id);
     return res.status(200).json({ data: newSession });
-  } catch (err) {
+  } catch (err: any) {
     return res.status(500).json({ error: err.message });
   }
 };

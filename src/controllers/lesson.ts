@@ -8,7 +8,7 @@ import express from "express";
 
 //create a new lesson
 export const createNewLesson = async (
-  req: express.Request & { identity: any },
+  req: express.Request,
   res: express.Response
 ) => {
   try {
@@ -18,11 +18,11 @@ export const createNewLesson = async (
 
     const newLesson = await createNewLessonDb({
       ...body,
-      tutor: req.identity._id,
+      tutor: (req as any).identity._id,
     });
 
     // save lesson to user table
-    const user: any = await getUserById(req.identity._id);
+    const user: any = await getUserById((req as any).identity._id);
 
     user.lessons.push(newLesson._id);
 
@@ -37,11 +37,11 @@ export const createNewLesson = async (
 
 //get all offered lessons
 export const getOfferedLessons = async (
-  req: express.Request & { identity: any },
+  req: express.Request,
   res: express.Response
 ) => {
   try {
-    const lessons = await getOfferedLessonsDb(req.identity._id);
+    const lessons = await getOfferedLessonsDb((req as any).identity._id);
     return res.status(200).json({ data: lessons });
   } catch (err: any) {
     return res.status(500).json({ error: err.message });
@@ -50,12 +50,12 @@ export const getOfferedLessons = async (
 
 //delete lesson offering
 export const deleteOffering = async (
-  req: express.Request & { identity: any },
+  req: express.Request,
   res: express.Response
 ) => {
   try {
-    const { lessonId } = req.identity;
-    const user: any = await getUserById(req.identity._id);
+    const { lessonId } = req.body;
+    const user: any = await getUserById((req as any).identity._id);
 
     const lesson = await deleteLessonByIdDb(lessonId);
 
@@ -74,12 +74,12 @@ export const deleteOffering = async (
 };
 
 export const getBookedLessonsOfuser = async (
-  req: express.Request & { identity: any },
+  req: express.Request,
   res: express.Response
 ) => {
   try {
     //from bookings also, populate lessons
-    const user: any = await getUserById(req.identity._id).populate({
+    const user: any = await getUserById((req as any).identity._id).populate({
       path: "bookings",
       populate: [
         { path: "lessonId" },

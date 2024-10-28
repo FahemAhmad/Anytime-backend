@@ -72,7 +72,7 @@ export const likeDislikeACommentDb = async (
   userId: string,
   isReverse: boolean
 ) => {
-  const comment = await CommentModel.findById(commentId);
+  const comment: any = await CommentModel.findById(commentId);
 
   // Update like/dislike count based on isReverse
   if (isLike && !isReverse) {

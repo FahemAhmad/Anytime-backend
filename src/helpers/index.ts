@@ -38,9 +38,9 @@ export const getSessionTimestamp = (
 
 export const addDuration = (
   timestamp: moment.Moment,
-  duration: string
+  duration: any
 ): moment.Moment => {
-  const [value, unit] = duration.match(/(\d+)(m|h)/i).slice(1);
+  const [value, unit] = duration?.match(/(\d+)(m|h)/i).slice(1);
   return (timestamp.clone() as any).add(parseInt(value), unit);
 };
 
