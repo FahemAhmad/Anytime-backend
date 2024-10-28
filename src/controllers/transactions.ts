@@ -9,10 +9,7 @@ import { MESSAGES } from "../helpers/notifications";
 import { createNotification } from "../db/notifications";
 import { pusherServer } from "../lib/pusher";
 
-export const getUserTransactions = async (
-  req: Request & { identity: any },
-  res: Response
-) => {
+export const getUserTransactions = async (req: Request, res: Response) => {
   try {
     const userId = (req as any).identity._id;
     const user: any = await getUserById(userId);
