@@ -4,7 +4,11 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node dist/index.js",
+    "start": "npx pm2 start dist/index.js --name 'anytimepractice-backend'",
+    "stop": "npx pm2 stop anytimepractice-backend",
+    "restart": "npx pm2 restart anytimepractice-backend",
+    "delete": "npx pm2 delete anytimepractice-backend",
+    "logs": "npx pm2 logs anytimepractice-backend",
     "dev": "nodemon src/index.ts",
     "build": "npx tsc",
     "prestart": "npm run build",
@@ -48,6 +52,5 @@
     "stripe": "^16.8.0",
     "uuid": "^9.0.1",
     "typescript": "^5.6.3"
-
   }
 }
