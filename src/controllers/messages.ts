@@ -22,7 +22,7 @@ export const getMessages = async (
 
     return res.status(200).json({ data: messages });
   } catch (err) {
-    return res.status(500).json({ error: err.message });
+    return res.status(500).json({ error: err });
   }
 };
 
@@ -68,7 +68,7 @@ export const createMessage = async (
     await newMessage.save();
     const returnedConversation = await updateConversation(
       conversationId,
-      newMessage._id.toString()
+      newMessage?._id.toString()
     );
 
     //pusher to add it
@@ -78,14 +78,14 @@ export const createMessage = async (
         returnedConversation.messageIds.length - 1
       ];
 
-    returnedConversation.userIds.map((user: any) => {
+    returnedConversation?.userIds.map((user: any) => {
       pusherServer.trigger(user.email!, "conversation:update", {
         _id: conversationId,
         messageIds: [lastMessage],
       });
     });
   } catch (err) {
-    return res.status(500).json({ error: err.message });
+    return res.status(500).json({ error: err });
   }
 };
 
@@ -128,6 +128,6 @@ export const messageSeen = async (
 
     return res.status(200).json({ data: conversation });
   } catch (err) {
-    return res.status(500).json({ error: err.message });
+    return res.status(500).json({ error: err });
   }
 };
