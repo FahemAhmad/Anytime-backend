@@ -21,6 +21,7 @@ export default (router: express.Router) => {
   // Admin routes
   router.get(`/users/admin-search`, authenticateAdmin, searchUsers);
   router.get("/users/get-admins", authenticateAdmin, getAllAdmins);
+  router.get("/users/admin/:id", authenticateAdmin, getUserDetails);
 
   // User routes
   router.get(`/users/search`, isAuthenticated, searchUsers);
@@ -38,5 +39,4 @@ export default (router: express.Router) => {
 
   router.get(`/users`, authenticateAdmin, getAllUsers);
   router.get("/users/admin-details", authenticateAdmin, getAdminUser);
-  router.get("/users/:id", authenticateAdmin, getUserDetails);
 };
