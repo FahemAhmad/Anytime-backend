@@ -13,7 +13,7 @@ require("dotenv").config();
 
 const app = express();
 
-const allowedOrigin = "http://localhost:3000";
+const allowedOrigin = process.env.FRONTEND_URL;
 
 app.use(
   cors({
@@ -35,8 +35,7 @@ server.listen(8085, () => {
   console.log("server running on port 8085");
 });
 
-const MONGO_URL =
-  "mongodb+srv://faheemahmad0108:c1N0TimFptCKc1C5@anytime-practice.hk6bf1e.mongodb.net/?retryWrites=true&w=majority";
+const MONGO_URL = process.env.MONGO_URL as string;
 mongoose.Promise = Promise;
 mongoose.connect(MONGO_URL);
 mongoose.connection.on("error", (error: Error) => console.log("error", error));
