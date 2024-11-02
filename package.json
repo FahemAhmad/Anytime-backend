@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "pm2 start dist/index.js --name anytimepractice-backend",
+    "start": "pm2 start dist/index.js --node-args='--max-old-space-size=4096' --name anytimepractice-backend --watch",
     "dev": "nodemon src/index.ts",
     "build": "npx tsc",
     "prestart": "npm run build",
