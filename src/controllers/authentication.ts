@@ -534,10 +534,6 @@ export const adminLogin = async (
       secure: process.env.NODE_ENV === "production", // Only secure in production
       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // Use lax for development
       maxAge: 24 * 60 * 60 * 1000, // 1 day
-      domain:
-        process.env.NODE_ENV === "production"
-          ? process.env.FRONTEND_URL
-          : "http://localhost:3000",
       path: "/", // Set cookie for the entire application
     });
 
