@@ -90,8 +90,6 @@ export const bookingPayed = async (
     const isPaidQuery = req.query.isPaid;
     const isPaid = isPaidQuery !== undefined ? isPaidQuery === "true" : true;
 
-    console.log("check point 1 ");
-
     const booking = await getBookingByBookingId(bookingId);
     if (!booking) return res.status(404).json({ error: "Booking not found" });
 

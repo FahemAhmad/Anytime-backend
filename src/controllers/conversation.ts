@@ -70,9 +70,13 @@ export const createConversation = async (
       // get the sender details of all users from redis
       const responseObj = { ...newConversationObj, userIds: userDetails };
 
-      responseObj.userIds.forEach((user: any) => {
+      responseObj.userIds.forEach(async (user: any) => {
         if (user.email) {
-          pusherServer.trigger(user.email, "conversation:new", responseObj);
+          await pusherServer.trigger(
+            user.email,
+            "conversation:new",
+            responseObj
+          );
         }
       });
 
@@ -114,9 +118,9 @@ export const createConversation = async (
     // get the sender details of all users from redis
     const responseObj = { ...newSingleConversationObj, userIds: userDetails };
 
-    responseObj.userIds.map((user: any) => {
+    responseObj.userIds.map(async (user: any) => {
       if (user.email) {
-        pusherServer.trigger(user.email, "conversation:new", responseObj);
+        await pusherServer.trigger(user.email, "conversation:new", responseObj);
       }
     });
 
@@ -143,7 +147,7 @@ export const getUserConversations = async (
   try {
     const userId = (req as any).identity._id;
 
-    const conversations = await getUserConversationByUserId(userId);
+    const conversations: any = await getUserConversationByUserId(userId);
 
     return res.status(200).json({ data: conversations });
   } catch (error: any) {
@@ -255,9 +259,9 @@ export const updateGroupDetails = async (
       updates
     );
 
-    updatedConversation.userIds.forEach((user: any) => {
+    updatedConversation.userIds.forEach(async (user: any) => {
       if (user.email) {
-        pusherServer.trigger(
+        await pusherServer.trigger(
           user.email,
           "conversation:update",
           updatedConversation

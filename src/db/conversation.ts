@@ -60,6 +60,7 @@ export const getUserConversationByUserId = (currentUserID: string) =>
       select: "firstName lastName avatarUrl email username",
       populate: {
         path: "messages",
+        options: { sort: { createdAt: -1 }, limit: 1 }, // Fetch only the last message
         populate: {
           path: "sender",
           select: "name",
@@ -68,11 +69,11 @@ export const getUserConversationByUserId = (currentUserID: string) =>
     })
     .populate({
       path: "messageIds",
+      options: { sort: { createdAt: -1 }, limit: 1 }, // Fetch only the last message if messageIds are populated
       populate: {
         path: "seenIds",
       },
     });
-
 /**
  * Create a new conversation with the given values.
  *

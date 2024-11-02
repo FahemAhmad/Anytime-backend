@@ -40,7 +40,7 @@ export default (router: express.Router) => {
     authenticateSuperAdmin,
     createAdmin
   );
-  router.post("/auth/logout", authenticateAdmin, logout);
+  router.post("/auth/logout", logout);
   router.delete(
     "/auth/:id",
     authenticateAdmin,

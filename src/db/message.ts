@@ -66,6 +66,6 @@ export const updateMessage = (id: string, lastMessageId: string) =>
     { $addToSet: { seenIds: id } }, // Add currentUserID to seenIds array
     { new: true } // Return the updated message
   )
-    .populate("senderId") // Include senderId in the result
-    .populate("seenIds")
+    .populate("senderId", "username _id firstName lastName email avatarUrl") // Include senderId in the result
+    .populate("seenIds", "username _id firstName lastName email avatarUrl")
     .populate("conversationId");

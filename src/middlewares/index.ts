@@ -63,6 +63,12 @@ export const authenticateAdmin = async (
     const sessionToken = req.cookies.sessionToken;
 
     if (!sessionToken) {
+      res.clearCookie("sessionToken", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production", // Match the cookie settings during login
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // Match the sameSite setting during login
+        path: "/",
+      });
       return res
         .status(401)
         .json({ message: "Unauthorized: No session token provided" });
@@ -74,6 +80,12 @@ export const authenticateAdmin = async (
     });
 
     if (!user) {
+      res.clearCookie("sessionToken", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production", // Match the cookie settings during login
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // Match the sameSite setting during login
+        path: "/",
+      });
       return res
         .status(401)
         .json({ message: "Unauthorized: Invalid session token" });
@@ -83,6 +95,13 @@ export const authenticateAdmin = async (
       user.authentication.sessionExpiry &&
       user.authentication.sessionExpiry < new Date()
     ) {
+      res.clearCookie("sessionToken", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production", // Match the cookie settings during login
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // Match the sameSite setting during login
+        path: "/",
+      });
+
       return res
         .status(401)
         .json({ message: "Unauthorized: Session has expired" });

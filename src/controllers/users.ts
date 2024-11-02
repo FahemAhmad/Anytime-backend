@@ -15,6 +15,7 @@ import {
   createOrRetrieveStripeCustomer,
 } from "./payment";
 import { createTransaction, getTransactionsByUserId } from "../db/transactions";
+import { isValidOffering } from "../helpers";
 
 const shuffleArray = (array: any) => {
   for (let i = array.length - 1; i > 0; i--) {
@@ -70,6 +71,9 @@ export const getTutors = async (
     const users = await UserModel.find({
       lessons: { $exists: true, $not: { $size: 0 } },
     })
+      .select(
+        "-notifications -credits -savedCards -role -stripeConnectedAccountId -stripeBankAccountId -stripeCustomerId -provider -otp -isOtpVerified -conversationIds -authentication.sessionExpiry -authentication.sessionToken -transactions -seenMessageId -messages -isVerified -otpExpiryTime "
+      )
       .populate({
         path: "lessons",
         match: { active: true },
@@ -78,22 +82,63 @@ export const getTutors = async (
         path: "bookings",
         populate: {
           path: "userId",
+          select: "_id username firstName lastName",
         },
       });
 
-    const usersWithActiveLessons = users
-      .filter((user) => user.lessons.length > 0)
+    //remove all lessons with no dates available
+    let usersWithActiveLessons: any = users
       .map((user) => {
-        user.lessons = user.lessons.filter((lesson: any) => lesson.active);
-        return user;
+        user.lessons = user.lessons.filter((lesson: any) => {
+          const validOfferings = isValidOffering(
+            lesson?.availability.selectedDays
+          );
+          return lesson?.active && validOfferings;
+        });
+        return user.lessons.length > 0 ? user : null;
+      })
+      .filter(Boolean);
+
+    const today = new Date();
+
+    const newUsers = usersWithActiveLessons.filter((user: any) => {
+      user.lessons = user.lessons.filter((lesson: any) => {
+        const { startDate, endDate } = lesson.range;
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+
+        if (start < today && end >= today) {
+          lesson.range.startDate = today.toISOString().split("T")[0];
+          // Delete all entries before current date in availability
+          lesson.availability.selectedDays =
+            lesson.availability.selectedDays.filter((day: any) => {
+              const dayDate = new Date(day.day);
+              return dayDate >= today;
+            });
+        }
+
+        // Delete days where morning, afternoon, and evening have no entries
+        lesson.availability.selectedDays =
+          lesson.availability.selectedDays.filter((day: any) => {
+            const { morning, afternoon, evening } = day.timeSlots;
+            return (
+              morning.length > 0 || afternoon.length > 0 || evening.length > 0
+            );
+          });
+
+        return lesson.availability.selectedDays.length > 0;
       });
 
-    // Shuffle the filtered users to randomize the results
-    const randomizedUsers = shuffleArray(usersWithActiveLessons);
+      // Return only users who have at least one valid lesson
+      return user.lessons.length > 0;
+    });
+
+    let randomizedUsers = [];
+    if (newUsers && newUsers.length > 1)
+      randomizedUsers = shuffleArray(newUsers);
 
     return res.status(200).json(randomizedUsers);
   } catch (error) {
-    console.log("err", error);
     return res.sendStatus(400);
   }
 };
@@ -551,7 +596,7 @@ export const getAdminUser = async (
   res: express.Response
 ) => {
   try {
-    const user = req.user;
+    const user = req.user || (req as any).identity;
 
     if (!user) {
       return res

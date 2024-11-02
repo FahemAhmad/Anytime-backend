@@ -115,3 +115,12 @@ export const getSessionByIdDB = (sessionId: string) =>
         },
       ],
     });
+
+export const increaseViewersCountDb = (id: string) =>
+  SessionModel.findByIdAndUpdate(
+    id,
+    {
+      $inc: { viewersCount: 1 },
+    },
+    { new: true }
+  );

@@ -4,6 +4,7 @@ import {
   createNewSessionDb,
   getAllSessions,
   getSessionByIdDB,
+  increaseViewersCountDb,
 } from "../db/session";
 import express from "express";
 import moment from "moment";
@@ -137,5 +138,24 @@ export const getSessionById = async (
     return res.status(200).json({ data: newSession });
   } catch (err: any) {
     return res.status(500).json({ error: err.message });
+  }
+};
+
+export const incrementView = async (
+  req: express.Request,
+  res: express.Response
+) => {
+  try {
+    const { id } = req.params;
+
+    const session = await increaseViewersCountDb(id);
+
+    if (!session) return res.status(404).json({ message: "Session not found" });
+
+    res.status(200).json(session);
+  } catch (err: any) {
+    return res.status(500).json({
+      error: err.message,
+    });
   }
 };

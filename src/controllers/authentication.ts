@@ -531,11 +531,10 @@ export const adminLogin = async (
     // Set the session token as an HTTP-only cookie
     res.cookie("sessionToken", sessionToken, {
       httpOnly: true,
-      domain: "localhost",
-      secure: process.env.NODE_ENV !== "development", // Use secure cookies in production
-      sameSite: "none", // Adjust as needed
+      secure: process.env.NODE_ENV === "production", // Only secure in production
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // Use lax for development
       maxAge: 24 * 60 * 60 * 1000, // 1 day
-      // path: "/",
+      path: "/", // Set cookie for the entire application
     });
 
     // Send back the user info without sessionToken (since it's in the cookie)
@@ -617,10 +616,16 @@ export const createAdmin = async (
 export const logout = async (req: express.Request, res: express.Response) => {
   try {
     const user = req.user; // Authenticated user set by the middleware
-
     if (!user) {
+      res.clearCookie("sessionToken", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production", // Match the cookie settings during login
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // Match the sameSite setting during login
+        path: "/",
+      });
+
       return res
-        .status(500)
+        .status(200)
         .json({ message: "User data not found in request" });
     }
 
@@ -632,9 +637,8 @@ export const logout = async (req: express.Request, res: express.Response) => {
     // Clear the sessionToken cookie from the client's browser
     res.clearCookie("sessionToken", {
       httpOnly: true,
-      domain: "localhost", // Adjust if needed
-      secure: process.env.NODE_ENV === "production", // Ensure it matches the cookie settings during login
-      sameSite: "lax", // Should match the cookie settings during login
+      secure: process.env.NODE_ENV === "production", // Match the cookie settings during login
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // Match the sameSite setting during login
       path: "/",
     });
 

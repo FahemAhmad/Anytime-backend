@@ -78,8 +78,8 @@ export const createMessage = async (
         returnedConversation.messageIds.length - 1
       ];
 
-    returnedConversation?.userIds.map((user: any) => {
-      pusherServer.trigger(user.email!, "conversation:update", {
+    returnedConversation?.userIds.map(async (user: any) => {
+      await pusherServer.trigger(user.email!, "conversation:update", {
         _id: conversationId,
         messageIds: [lastMessage],
       });
@@ -115,12 +115,16 @@ export const messageSeen = async (
       lastMessage._id.toString()
     );
 
-    pusherServer.trigger((req as any)?.identity.email, "conversation:update", {
-      id,
-      messageIds: [updatedMessage],
-    });
+    await pusherServer.trigger(
+      (req as any)?.identity.email,
+      "conversation:update",
+      {
+        id,
+        messageIds: [updatedMessage],
+      }
+    );
 
-    pusherServer.trigger(id, "message:update", updatedMessage);
+    await pusherServer.trigger(id, "message:update", updatedMessage);
 
     if (
       lastMessage?.seenIds.indexOf((req as any).identity._id.toString()) !== -1
@@ -130,6 +134,7 @@ export const messageSeen = async (
 
     return res.status(200).json({ data: conversation });
   } catch (err) {
+    console.log("err", err);
     return res.status(500).json({ error: err });
   }
 };

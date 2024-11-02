@@ -1,5 +1,6 @@
 import crypto from "crypto";
 import moment from "moment";
+import dayjs from "dayjs";
 
 const SECRET = "secret";
 const OTP_EXPIRY_TIME = 2;
@@ -49,3 +50,26 @@ export function generateRandomUsername(name: string): string {
   const randomNumber = Math.floor(1000 + Math.random() * 9000);
   return `${baseName}${randomNumber}`;
 }
+
+export const isValidOffering = (selectedDays: any) => {
+  const now = dayjs().add(1, "day");
+
+  return selectedDays.some((day: any) => {
+    const dayDate = dayjs(day.day);
+
+    if (dayDate.isAfter(now, "day")) return true;
+
+    if (dayDate.isSame(now, "day")) {
+      const { morning, afternoon, evening } = day.timeSlots;
+      const currentHour = now.hour();
+
+      return (
+        morning.some((slot: any) => parseInt(slot) > currentHour) ||
+        afternoon.some((slot: any) => parseInt(slot) > currentHour) ||
+        evening.some((slot: any) => parseInt(slot) > currentHour)
+      );
+    }
+
+    return false;
+  });
+};
