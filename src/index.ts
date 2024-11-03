@@ -29,6 +29,7 @@ app.use(compression());
 app.use(morgan("tiny"));
 app.use(cookieParser());
 app.use(bodyParser.json());
+app.set("trust proxy", 1);
 
 const server = http.createServer(app);
 
