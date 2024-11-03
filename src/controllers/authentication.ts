@@ -558,6 +558,7 @@ export const adminLogin = async (
       sameSite: "none",
       maxAge: 24 * 60 * 60 * 1000, // 1 day
       path: "/",
+      partitioned: true,
     });
 
     console.log("cookie option", cookieOptions);
