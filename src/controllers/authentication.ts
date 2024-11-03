@@ -528,16 +528,19 @@ export const adminLogin = async (
     user.authentication.sessionExpiry = sessionExpiry;
     await user.save();
 
-    // Set the session token as an HTTP-only cookie
-    res.cookie("sessionToken", sessionToken, {
-      httpOnly: false,
+    const cookieOptions: any = {
+      httpOnly: true,
       secure: process.env.NODE_ENV === "production", // Only secure in production
       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // Use lax for development
       maxAge: 24 * 60 * 60 * 1000, // 1 day
-      domain:
-        process.env.NODE_ENV === "production" ? ".medipals.co.uk" : "localhost",
       path: "/",
-    });
+    };
+
+    if (process.env.NODE_ENV !== "production")
+      cookieOptions.domain = "localhost";
+
+    // Set the session token as an HTTP-only cookie
+    res.cookie("sessionToken", sessionToken, cookieOptions);
 
     // Send back the user info without sessionToken (since it's in the cookie)
     return res.status(200).json({
