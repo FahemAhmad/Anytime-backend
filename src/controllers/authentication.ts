@@ -530,11 +530,12 @@ export const adminLogin = async (
 
     const cookieOptions: any = {
       httpOnly: true,
-      // secure: process.env.NODE_ENV === "production", // Only secure in production
-      // sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // Use lax for development
+      secure: process.env.NODE_ENV === "production", // Only secure in production
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // Use lax for development
       maxAge: 24 * 60 * 60 * 1000, // 1 day
-      // path: "/",
-      // partitioned: true,
+      path: "/",
+      partitioned: true,
+      domain: ".medipals.co.uk",
     };
 
     // if (process.env.NODE_ENV === "production") {
@@ -547,9 +548,10 @@ export const adminLogin = async (
     res.cookie("test", "t2", {
       httpOnly: false,
       maxAge: 24 * 60 * 60 * 1000, // 1 day
-      // secure: true,
-      // sameSite: "none",
-      // path: "/",
+      secure: true,
+      sameSite: "none",
+      path: "/",
+      domain: "",
     });
 
     res.cookie("_test5", "t2", {
