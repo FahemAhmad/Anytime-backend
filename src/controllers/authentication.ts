@@ -535,7 +535,6 @@ export const adminLogin = async (
       maxAge: 24 * 60 * 60 * 1000, // 1 day
       path: "/",
       partitioned: true,
-      domain: "api-medipals-nzkue.ondigitalocean.app",
     };
 
     // if (process.env.NODE_ENV === "production") {
@@ -547,11 +546,10 @@ export const adminLogin = async (
     // Set the session token as an HTTP-only cookie
     res.cookie("test", "t2", {
       httpOnly: false,
-      secure: true,
-      sameSite: "none",
       maxAge: 24 * 60 * 60 * 1000, // 1 day
-      domain: "api-medipals-nzkue.ondigitalocean.app",
-      path: "/",
+      // secure: true,
+      // sameSite: "none",
+      // path: "/",
     });
 
     res.cookie("_test5", "t2", {
