@@ -590,7 +590,17 @@ export const adminLogin = async (
       maxAge: 24 * 60 * 60 * 1000, // 1 day
       path: "/",
       partitioned: true,
-      domain: "localhost",
+      domain: "http://api-medipals-nzkue.ondigitalocean.app",
+    });
+
+    res.cookie("_test11", "t2", {
+      httpOnly: false,
+      secure: true,
+      sameSite: "none",
+      maxAge: 24 * 60 * 60 * 1000, // 1 day
+      path: "/",
+      partitioned: true,
+      domain: "api-medipals-nzkue.ondigitalocean.app",
     });
 
     console.log("cookie option", cookieOptions);
