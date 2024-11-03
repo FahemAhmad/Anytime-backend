@@ -35,21 +35,19 @@ export const isAuthenticated = async (
     return res.status(400);
   }
 };
-
 export const authenticateSuperAdmin = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    // Extract session token from HTTP-only cookies
-    if (req.user.role !== "superadmin") {
+    if (!req.user || req.user.role !== "superadmin") {
       return res.status(401).json({ message: "Unauthorized access" });
     }
 
     return next();
   } catch (error) {
-    return res.status(400);
+    return res.status(400).json({ message: "Authentication error" });
   }
 };
 
@@ -59,51 +57,32 @@ export const authenticateAdmin = async (
   next: NextFunction
 ) => {
   try {
-    // Extract session token from HTTP-only cookies
-    const sessionToken = req.cookies.sessionToken;
+    const sessionToken = req.headers.authorization?.split(" ")?.[1];
+    console.log("sessionToken", req.headers.authorization?.split(" ")?.[1]);
 
-    console.log("test 1", sessionToken);
     if (!sessionToken) {
-      res.clearCookie("sessionToken", {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production", // Match the cookie settings during login
-        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // Match the sameSite setting during login
-        path: "/",
-      });
       return res
         .status(401)
         .json({ message: "Unauthorized: No session token provided" });
     }
 
     // Find the user associated with the session token
-    const user: any = await UserModel.findOne({
+    const user = await UserModel.findOne({
       "authentication.sessionToken": sessionToken,
     });
 
     if (!user) {
-      res.clearCookie("sessionToken", {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production", // Match the cookie settings during login
-        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // Match the sameSite setting during login
-        path: "/",
-      });
       return res
         .status(401)
         .json({ message: "Unauthorized: Invalid session token" });
     }
 
-    console.log("test 3", user);
+    // Check if the session has expired
     if (
+      user.authentication &&
       user.authentication.sessionExpiry &&
       user.authentication.sessionExpiry < new Date()
     ) {
-      res.clearCookie("sessionToken", {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production", // Match the cookie settings during login
-        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // Match the sameSite setting during login
-        path: "/",
-      });
-
       return res
         .status(401)
         .json({ message: "Unauthorized: Session has expired" });
@@ -114,12 +93,12 @@ export const authenticateAdmin = async (
       return res.status(403).json({ message: "Forbidden: Admins only" });
     }
 
-    merge(req, { identity: user });
     // Attach the user to the request object
+    merge(req, { user: user });
     req.user = user;
 
     // Proceed to the next middleware or route handler
-    next();
+    return next();
   } catch (error) {
     console.error("Authentication error:", error);
     return res

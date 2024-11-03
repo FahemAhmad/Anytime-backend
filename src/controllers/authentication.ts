@@ -528,92 +528,15 @@ export const adminLogin = async (
     user.authentication.sessionExpiry = sessionExpiry;
     await user.save();
 
-    const cookieOptions: any = {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production", // Only secure in production
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // Use lax for development
-      maxAge: 24 * 60 * 60 * 1000, // 1 day
-      path: "/",
-      partitioned: true,
-      domain: ".medipals.co.uk",
-    };
 
-    // if (process.env.NODE_ENV === "production") {
-    //   cookieOptions.domain = ".medipals.co.uk";
-    // } else {
-    //   cookieOptions.domain = "localhost";
-    // }
-
-    // Set the session token as an HTTP-only cookie
-    res.cookie("test", "t2", {
-      httpOnly: false,
-      maxAge: 24 * 60 * 60 * 1000, // 1 day
-      secure: true,
-      sameSite: "none",
-      path: "/",
-      domain: "www.medipals.co.uk",
-    });
-
-    res.cookie("_test5", "t2", {
-      httpOnly: false,
-      secure: true,
-      sameSite: "none",
-      maxAge: 24 * 60 * 60 * 1000, // 1 day
-      path: "/",
-      partitioned: true,
-      domain: "https://www.medipals.co.uk",
-    });
-    res.cookie("_test9", "t2", {
-      httpOnly: false,
-      secure: true,
-      sameSite: "none",
-      maxAge: 24 * 60 * 60 * 1000, // 1 day
-      path: "/",
-      partitioned: true,
-      domain: "https://.medipals.co.uk",
-    });
-
-    res.cookie("_test10", "t2", {
-      httpOnly: false,
-      secure: true,
-      sameSite: "none",
-      maxAge: 24 * 60 * 60 * 1000, // 1 day
-      path: "/",
-      partitioned: true,
-      domain: "https://medipals.co.uk",
-    });
-
-    res.cookie("_test11", "t2", {
-      httpOnly: false,
-      secure: true,
-      sameSite: "none",
-      maxAge: 24 * 60 * 60 * 1000, // 1 day
-      path: "/",
-      partitioned: true,
-      domain: "http://api-medipals-nzkue.ondigitalocean.app",
-    });
-
-    res.cookie("_test11", "t2", {
-      httpOnly: false,
-      secure: true,
-      sameSite: "none",
-      maxAge: 24 * 60 * 60 * 1000, // 1 day
-      path: "/",
-      partitioned: true,
-      domain: "api-medipals-nzkue.ondigitalocean.app",
-    });
-
-    console.log("cookie option", cookieOptions);
-    console.log("test 123");
-    res.cookie("sessionToken", sessionToken, cookieOptions);
-
-    // Send back the user info without sessionToken (since it's in the cookie)
+    // Send back the user info along with the sessionToken
     return res.status(200).json({
       id: user._id,
       name: `${user.firstName} ${user.lastName}`,
       email: user.email,
       role: user.role,
       avatarUrl: user.avatarUrl || "",
+      sessionToken: sessionToken, // Include the session token
     });
   } catch (err) {
     console.log("Error during login:", err);
@@ -705,12 +628,6 @@ export const logout = async (req: express.Request, res: express.Response) => {
     await user.save();
 
     // Clear the sessionToken cookie from the client's browser
-    res.clearCookie("sessionToken", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production", // Match the cookie settings during login
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // Match the sameSite setting during login
-      path: "/",
-    });
 
     return res.status(200).json({ message: "Logout successful" });
   } catch (error) {
