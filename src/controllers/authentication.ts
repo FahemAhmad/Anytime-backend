@@ -530,11 +530,11 @@ export const adminLogin = async (
 
     const cookieOptions: any = {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production", // Only secure in production
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // Use lax for development
+      // secure: process.env.NODE_ENV === "production", // Only secure in production
+      // sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // Use lax for development
       maxAge: 24 * 60 * 60 * 1000, // 1 day
-      path: "/",
-      partitioned: true,
+      // path: "/",
+      // partitioned: true,
     };
 
     // if (process.env.NODE_ENV === "production") {
