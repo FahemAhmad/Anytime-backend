@@ -535,9 +535,7 @@ export const adminLogin = async (
       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // Use lax for development
       maxAge: 24 * 60 * 60 * 1000, // 1 day
       domain:
-        process.env.NODE_ENV === "production"
-          ? "www.medipals.co.uk"
-          : "localhost",
+        process.env.NODE_ENV === "production" ? ".medipals.co.uk" : "localhost",
       path: "/",
     });
 
