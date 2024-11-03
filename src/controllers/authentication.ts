@@ -543,6 +543,14 @@ export const adminLogin = async (
     // }
 
     // Set the session token as an HTTP-only cookie
+    res.cookie("test", "t2", {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+      maxAge: 24 * 60 * 60 * 1000, // 1 day
+      domain: ".medipals.co.uk",
+      path: "/",
+    });
     res.cookie("sessionToken", sessionToken, cookieOptions);
 
     // Send back the user info without sessionToken (since it's in the cookie)
