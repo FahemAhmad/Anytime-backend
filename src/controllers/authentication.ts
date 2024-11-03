@@ -535,6 +535,7 @@ export const adminLogin = async (
       maxAge: 24 * 60 * 60 * 1000, // 1 day
       path: "/",
       partitioned: true,
+      domain: "api-medipals-nzkue.ondigitalocean.app",
     };
 
     // if (process.env.NODE_ENV === "production") {
@@ -549,7 +550,7 @@ export const adminLogin = async (
       secure: true,
       sameSite: "none",
       maxAge: 24 * 60 * 60 * 1000, // 1 day
-      domain: "www.medipals.co.uk",
+      domain: "api-medipals-nzkue.ondigitalocean.app",
       path: "/",
     });
 
