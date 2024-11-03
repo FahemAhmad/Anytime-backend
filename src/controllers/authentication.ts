@@ -548,7 +548,7 @@ export const adminLogin = async (
       secure: true,
       sameSite: "none",
       maxAge: 24 * 60 * 60 * 1000, // 1 day
-      domain: "www.medipals.co.uk",
+      domain: ".medipals.co.uk",
       path: "/",
     });
 
