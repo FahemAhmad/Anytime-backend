@@ -551,6 +551,9 @@ export const adminLogin = async (
       domain: ".medipals.co.uk",
       path: "/",
     });
+
+    console.log("cookie option", cookieOptions);
+    console.log("test 123");
     res.cookie("sessionToken", sessionToken, cookieOptions);
 
     // Send back the user info without sessionToken (since it's in the cookie)
