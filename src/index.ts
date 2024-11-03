@@ -13,18 +13,13 @@ require("dotenv").config();
 
 const app = express();
 
-const allowedOrigins = [process.env.FRONTEND_URL, "http://localhost:3000"];
-
 app.use(
   cors({
     credentials: true,
-    origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
+    origin:
+      process.env.NODE_ENV === "production"
+        ? process.env.FRONTEND_URL
+        : "http://localhost:3000",
     methods: "GET,PUT,POST,DELETE,PATCH",
     allowedHeaders: ["Content-Type", "Authorization"],
   })
