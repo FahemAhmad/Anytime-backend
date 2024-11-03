@@ -534,7 +534,11 @@ export const adminLogin = async (
       secure: process.env.NODE_ENV === "production", // Only secure in production
       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // Use lax for development
       maxAge: 24 * 60 * 60 * 1000, // 1 day
-      path: "/", // Set cookie for the entire application
+      domain:
+        process.env.NODE_ENV === "production"
+          ? "www.medipals.co.uk"
+          : "localhost",
+      path: "/",
     });
 
     // Send back the user info without sessionToken (since it's in the cookie)
