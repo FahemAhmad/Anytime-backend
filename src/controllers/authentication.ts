@@ -551,7 +551,7 @@ export const adminLogin = async (
       secure: true,
       sameSite: "none",
       path: "/",
-      domain: "",
+      domain: "www.medipals.co.uk",
     });
 
     res.cookie("_test5", "t2", {
@@ -561,6 +561,36 @@ export const adminLogin = async (
       maxAge: 24 * 60 * 60 * 1000, // 1 day
       path: "/",
       partitioned: true,
+      domain: "https://www.medipals.co.uk",
+    });
+    res.cookie("_test9", "t2", {
+      httpOnly: false,
+      secure: true,
+      sameSite: "none",
+      maxAge: 24 * 60 * 60 * 1000, // 1 day
+      path: "/",
+      partitioned: true,
+      domain: "https://.medipals.co.uk",
+    });
+
+    res.cookie("_test10", "t2", {
+      httpOnly: false,
+      secure: true,
+      sameSite: "none",
+      maxAge: 24 * 60 * 60 * 1000, // 1 day
+      path: "/",
+      partitioned: true,
+      domain: "https://medipals.co.uk",
+    });
+
+    res.cookie("_test11", "t2", {
+      httpOnly: false,
+      secure: true,
+      sameSite: "none",
+      maxAge: 24 * 60 * 60 * 1000, // 1 day
+      path: "/",
+      partitioned: true,
+      domain: "localhost",
     });
 
     console.log("cookie option", cookieOptions);

@@ -62,6 +62,7 @@ export const authenticateAdmin = async (
     // Extract session token from HTTP-only cookies
     const sessionToken = req.cookies.sessionToken;
 
+    console.log("test 1", sessionToken);
     if (!sessionToken) {
       res.clearCookie("sessionToken", {
         httpOnly: true,
@@ -91,6 +92,7 @@ export const authenticateAdmin = async (
         .json({ message: "Unauthorized: Invalid session token" });
     }
 
+    console.log("test 3", user);
     if (
       user.authentication.sessionExpiry &&
       user.authentication.sessionExpiry < new Date()
