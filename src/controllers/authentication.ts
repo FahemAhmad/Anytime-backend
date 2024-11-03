@@ -536,11 +536,11 @@ export const adminLogin = async (
       path: "/",
     };
 
-    if (process.env.NODE_ENV === "production") {
-      cookieOptions.domain = ".medipals.co.uk";
-    } else {
-      cookieOptions.domain = "localhost";
-    }
+    // if (process.env.NODE_ENV === "production") {
+    //   cookieOptions.domain = ".medipals.co.uk";
+    // } else {
+    //   cookieOptions.domain = "localhost";
+    // }
 
     // Set the session token as an HTTP-only cookie
     res.cookie("sessionToken", sessionToken, cookieOptions);
