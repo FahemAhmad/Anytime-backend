@@ -3,6 +3,7 @@ import {
   UserModel,
   addCardToUser,
   getCardsByUserId,
+  getLinkedBanks,
   getUserById,
   getUsers,
   removeCardFromUser,
@@ -93,6 +94,7 @@ export const getTutors = async (
           const validOfferings = isValidOffering(
             lesson?.availability.selectedDays
           );
+
           return lesson?.active && validOfferings;
         });
         return user.lessons.length > 0 ? user : null;
@@ -136,6 +138,7 @@ export const getTutors = async (
     let randomizedUsers = [];
     if (newUsers && newUsers.length > 1)
       randomizedUsers = shuffleArray(newUsers);
+    else if (users.length === 1) randomizedUsers.push(newUsers[0]);
 
     return res.status(200).json(randomizedUsers);
   } catch (error) {
@@ -630,5 +633,18 @@ export const getAllAdmins = async (
   } catch (error) {
     console.error("Error fetching admins:", error);
     return res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const getBankDetails = async (
+  req: express.Request,
+  res: express.Response
+) => {
+  try {
+    const userId = (req as any).identity._id;
+    const userbanks = await getLinkedBanks(userId);
+    return res.status(200).json(userbanks);
+  } catch (error) {
+    return res.status(500).json({ message: error });
   }
 };

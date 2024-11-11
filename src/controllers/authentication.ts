@@ -277,6 +277,7 @@ export const oauthLogin = async (
   res: express.Response
 ) => {
   const { providerName: provider } = req.params;
+
   let { token } = req.body;
 
   if (!token) {
@@ -527,7 +528,6 @@ export const adminLogin = async (
     user.authentication.sessionToken = sessionToken;
     user.authentication.sessionExpiry = sessionExpiry;
     await user.save();
-
 
     // Send back the user info along with the sessionToken
     return res.status(200).json({

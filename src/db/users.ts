@@ -147,8 +147,6 @@ const UserSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
-    stripeConnectedAccountId: String,
-    stripeBankAccountId: String,
     country: {
       type: String,
       default: "",
@@ -162,6 +160,13 @@ const UserSchema = new mongoose.Schema(
       type: Boolean,
       default: true, // true means active, false means blocked
     },
+    linkedBankAccounts: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Bank",
+        select: false,
+      },
+    ],
   },
   {
     timestamps: true,
@@ -270,3 +275,9 @@ export const removeCardFromUser = (
     { $pull: { savedCards: { stripePaymentMethodId: stripePaymentMethodId } } },
     { new: true }
   );
+
+export const getLinkedBanks = (userId: string) =>
+  UserModel.findById(userId).select("linkedBankAccounts").populate({
+    path: "linkedBankAccounts",
+    select: "-stripeExternalAccountId",
+  });

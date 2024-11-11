@@ -58,7 +58,6 @@ export const authenticateAdmin = async (
 ) => {
   try {
     const sessionToken = req.headers.authorization?.split(" ")?.[1];
-    console.log("sessionToken", req.headers.authorization?.split(" ")?.[1]);
 
     if (!sessionToken) {
       return res

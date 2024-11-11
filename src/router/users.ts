@@ -5,6 +5,7 @@ import {
   getAdminUser,
   getAllAdmins,
   getAllUsers,
+  getBankDetails,
   getStatistics,
   getTutors,
   getUserCards,
@@ -24,6 +25,7 @@ export default (router: express.Router) => {
   router.get("/users/admin/:id", authenticateAdmin, getUserDetails);
 
   // User routes
+  router.get("/users/bank-details", isAuthenticated, getBankDetails);
   router.get(`/users/search`, isAuthenticated, searchUsers);
   router.get(`/users/tutors`, isAuthenticated, getTutors);
   router.put(`/users/follow`, isAuthenticated, followUnfollowUser);
