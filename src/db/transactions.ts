@@ -18,7 +18,6 @@ const TransactionSchema = new mongoose.Schema(
     paymentIntentId: {
       type: String,
     },
-
     type: {
       type: String,
       enum: ["BOOKING", "CREDIT_PURCHASE", "CREDIT_DEDUCTION", "WITHDRAWAL"],
@@ -29,7 +28,7 @@ const TransactionSchema = new mongoose.Schema(
     paymentMethod: {
       type: String,
       enum: ["CARD", "CREDITS", "ADMIN"],
-      default: ["CARD"],
+      default: "CARD",
     },
   },
   { timestamps: true }

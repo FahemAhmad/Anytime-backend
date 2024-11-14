@@ -10,7 +10,7 @@ import {
   searchUsersDb,
   updateUserById,
 } from "../db/users";
-import { BookingModel } from "../db/booking";
+import { BookingModel, getBookingByBookingId } from "../db/booking";
 import {
   attachPaymentMethodToCustomer,
   createOrRetrieveStripeCustomer,
@@ -504,11 +504,17 @@ export const deductCredits = async (
       return res.status(400).json({ error: "Insufficient credits" });
     }
 
+    const existingbookings = await getBookingByBookingId(bookingId);
+    if (!existingbookings) {
+      return res.status(400).json({ error: "No booking found" });
+    }
+
+    existingbookings.isPaid = true;
+    existingbookings.save();
     const updatedUser: any = await updateUserById(userId, {
       $inc: { credits: -amount },
     });
 
-    console.log("bookingId", bookingId);
     // Create a transaction record
     await createTransaction({
       user: userId,

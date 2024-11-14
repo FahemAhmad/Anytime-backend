@@ -56,6 +56,7 @@ export const createMessage = async (
     newMessageDataResponse.senderId = senderDetails;
     newMessageDataResponse.seenIds = [senderDetails];
 
+    console.log("conversation-id", conversationId);
     await pusherServer.trigger(
       conversationId,
       "message:new",

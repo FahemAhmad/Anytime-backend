@@ -115,8 +115,6 @@ export const bookingPayed = async (
 
     return res.status(200).json(transaction);
   } catch (err: any) {
-    console.log("console.log", err);
-
     return res.status(500).json({ error: err.message });
   }
 };

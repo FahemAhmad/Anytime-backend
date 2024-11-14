@@ -44,11 +44,21 @@ export const initStripe = async (
     const stripe = getStripe();
 
     const { price } = req.body;
+
     const user: any = await getUserById((req as any).identity._id);
 
+    if (!user?.stripeCustomerId) {
+      user.stripeCustomerId = await createOrRetrieveStripeCustomer(
+        (req as any).identity._id
+      );
+
+      await user.save();
+    }
+
+    let finalPrice = Number(price) * 100;
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round(parseFloat(price)),
-      currency: "usd",
+      amount: Math.round(parseFloat(finalPrice.toString())),
+      currency: "gbp",
       payment_method_types: ["card"],
       customer: user?.stripeCustomerId || "",
     });
@@ -134,209 +144,6 @@ export const addCredits = async (
   }
 };
 
-// export const payoutToBank = async (
-//   req: express.Request,
-//   res: express.Response
-// ) => {
-//   const stripe = getStripe();
-//   try {
-//     const userId = (req as any).identity._id;
-//     let {
-//       amount,
-//       currency,
-//       country,
-//       accountHolderName,
-//       iban,
-//       accountNumber,
-//       routingNumber,
-//     } = req.body;
-
-//     country = "TN";
-//     currency = "tnd";
-
-//     // Validate required parameters
-//     if (
-//       !amount ||
-//       !country ||
-//       !accountHolderName ||
-//       !iban ||
-//       (accountNumber && !routingNumber)
-//     ) {
-//       console.log("missing fields");
-//       return res.status(400).json({ error: "Missing required parameters." });
-//     }
-
-//     const user: any = await getUserById(userId);
-//     if (!user) {
-//       return res.status(404).json({ error: "User not found." });
-//     }
-
-//     if (user.credits < amount) {
-//       return res.status(400).json({ error: "Insufficient credit." });
-//     }
-
-//     let bankAccountId = user.stripeBankAccountId;
-//     let connectedAccountId = user.stripeConnectedAccountId;
-
-//     // If no connected account is stored, create one with an external account
-//     if (!connectedAccountId) {
-//       try {
-//         const bankAccountToken = await stripe.tokens.create({
-//           bank_account: iban
-//             ? {
-//                 country: country.anme,
-//                 currency: currency,
-//                 account_holder_name: accountHolderName,
-//                 account_holder_type: "individual",
-//                 account_number: iban,
-//               }
-//             : {
-//                 country: country,
-//                 currency: currency,
-//                 account_holder_name: accountHolderName,
-//                 account_holder_type: "individual",
-//                 routing_number: routingNumber,
-//                 account_number: accountNumber,
-//               },
-//         });
-
-//         const connectedAccount: any = await stripe.accounts.create({
-//           type: "custom",
-//           country: country,
-//           business_type: "individual",
-//           capabilities: {
-//             transfers: { requested: true },
-//           },
-//           business_profile: {
-//             url: "https://picsum.photos/200/300",
-//           },
-//           individual: {
-//             first_name: user.firstName,
-//             last_name: user.lastName,
-//             email: user.email,
-//             nationality: "PK",
-//             address: {
-//               line1: "123 Main St",
-//               city: "Anytown",
-//               state: "CA",
-//               postal_code: "12345",
-//               country: country,
-//             },
-//             dob: {
-//               day: 1,
-//               month: 1,
-//               year: 1990,
-//             },
-//             id_number: "1234567890",
-//           } as any,
-//           tos_acceptance: {
-//             date: Math.floor(Date.now() / 1000),
-//             ip: req.ip,
-//             service_agreement: "recipient",
-//           },
-//           external_account: bankAccountToken.id,
-//         });
-
-//         connectedAccountId = connectedAccount.id;
-//         bankAccountId = connectedAccount?.external_accounts.data[0].id;
-
-//         await updateUserById(userId, {
-//           stripeConnectedAccountId: connectedAccountId,
-//           stripeBankAccountId: bankAccountId,
-//         });
-//       } catch (error: any) {
-//         console.log("failed to create connected account", error);
-//         return res.status(400).json({
-//           error: "Failed to create connected account with external account",
-//           details: error.message,
-//         });
-//       }
-//     }
-
-//     // Check if the connected account has unmet requirements
-//     const account: any = await stripe.accounts.retrieve(
-//       connectedAccountId as any
-//     );
-//     if (account.requirements.currently_due.length > 0) {
-//       console.log("unmet requirements", account.requirements.currently_due);
-//       return res.status(400).json({
-//         error: "Connected account has unmet requirements.",
-//         requirements: account.requirements.currently_due,
-//       });
-//     }
-
-//     // Check platform balance
-//     const platformBalance = await stripe.balance.retrieve();
-//     console.log("Platform balance:", platformBalance);
-
-//     // Attempt to transfer funds from the platform account to the connected account
-//     try {
-//       const transfer = await stripe.transfers.create({
-//         amount: amount * 100, // amount in cents
-//         currency: "usd",
-//         destination: connectedAccountId || "",
-//       });
-
-//       console.log("Funds transferred to connected account:", transfer.id);
-
-//       // Implement a delay to allow transfer to process
-//       await new Promise((resolve) => setTimeout(resolve, 2000));
-//     } catch (error: any) {
-//       console.log("Failed to transfer funds to connected account", error);
-//       return res.status(400).json({
-//         error: "Failed to transfer funds to connected account",
-//         details: error.message,
-//       });
-//     }
-
-//     // Create the payout
-//     try {
-//       const payout = await stripe.payouts.create(
-//         {
-//           amount: amount * 100, // amount in cents
-//           currency: currency,
-//         },
-//         {
-//           stripeAccount: connectedAccountId || "",
-//         }
-//       );
-
-//       // Deduct the amount from user's credit
-//       const updatedUser = await updateUserById(userId, {
-//         $inc: { credits: -amount },
-//       });
-
-//       // Create a transaction record
-//       await createTransaction({
-//         user: userId,
-//         amount: amount,
-//         paymentIntentId: payout.id,
-//         type: "WITHDRAWAL",
-//       });
-
-//       return res.status(200).json({
-//         success: true,
-//         message: "Payout initiated successfully.",
-//         payoutId: payout.id,
-//         remainingCredit: updatedUser
-//           ? updatedUser.credits
-//           : user.credits - amount,
-//       });
-//     } catch (error: any) {
-//       console.log("Failed to create payout", error);
-//       return res.status(400).json({
-//         error: "Failed to create payout",
-//         details: error.message,
-//       });
-//     }
-//   } catch (error: any) {
-//     console.error("Error initiating payout:", error);
-//     if (error.type && error.type.includes("Stripe")) {
-//       return res.status(400).json({ error: error.message });
-//     }
-//     return res.status(500).json({ error: "Internal server error." });
-//   }
-// };
 export const addBank = async (req: express.Request, res: express.Response) => {
   try {
     const stripe = getStripe();
@@ -353,6 +160,8 @@ export const addBank = async (req: express.Request, res: express.Response) => {
       accountNumber,
       routingNumber,
       iban,
+      phoneNumber,
+      mcc,
     } = req.body;
 
     // Validate required fields
@@ -369,6 +178,7 @@ export const addBank = async (req: express.Request, res: express.Response) => {
       !address.line1 ||
       !bankCountry ||
       !bankName ||
+      !phoneNumber ||
       (!iban && (!accountNumber || !routingNumber))
     ) {
       console.log("All fields required");
@@ -379,13 +189,14 @@ export const addBank = async (req: express.Request, res: express.Response) => {
 
     // Validate nationalIdNumber type
     if (typeof nationalIdNumber !== "number") {
-      console.log("not a number");
       return res
         .status(400)
         .json({ error: "National ID Number must be a number." });
     }
 
-    const user: any = await UserModel.findById(userId);
+    const user: any = await UserModel.findById(userId).select(
+      "+linkedBankAccounts"
+    );
     if (!user) {
       return res.status(404).json({ error: "User not found." });
     }
@@ -428,21 +239,29 @@ export const addBank = async (req: express.Request, res: express.Response) => {
 
     const [firstName, lastName] = accountHolderName.split(" ") || "";
 
+    let isUS = address.country.cca2;
     // Create Stripe account ID
     const account = await stripe.accounts.create({
       type: "custom",
       country: address.country.cca2, // Use cca2 code
       business_type: "individual",
-      capabilities: {
-        transfers: { requested: true },
-      },
+      capabilities: isUS
+        ? {
+            card_payments: { requested: true },
+            transfers: { requested: true },
+          }
+        : {
+            transfers: { requested: true },
+          },
       business_profile: {
         url: user?.avatarUrl || "https://picsum.photos/200/300",
+        ...(mcc && { mcc }),
       },
       individual: {
         first_name: firstName || user.firstName,
         last_name: (firstName && lastName) || user.lastName,
         email: user.email,
+        phone: phoneNumber,
         nationality: address.country.cca2, // Use cca2 code
         address: {
           line1: address.line1,
@@ -462,6 +281,7 @@ export const addBank = async (req: express.Request, res: express.Response) => {
         date: Math.floor(Date.now() / 1000), // Current timestamp in seconds
         ip: getClientIp(req), // Client's IP address
         user_agent: getUserAgent(req),
+        service_agreement: "full",
       },
       external_account: bankAccountToken.id,
     });
@@ -537,7 +357,7 @@ export const payoutToBank = async (
     if (account.requirements.currently_due.length > 0) {
       console.log("unmet requirements", account.requirements.currently_due);
       return res.status(400).json({
-        error: "Connected account has unmet requirements.",
+        error: `Connected account has unmet requirements. ${account.requirements.currently_due}`,
         requirements: account.requirements.currently_due,
       });
     }
@@ -546,17 +366,13 @@ export const payoutToBank = async (
     const platformBalance = await stripe.balance.retrieve();
     console.log("Platform balance:", platformBalance);
 
-    console.log("checkpoint 1 cleared");
-
     //transfer funds
     try {
-      const transfer = await stripe.transfers.create({
-        amount: amount * 100, // amount in cents
-        currency: "usd",
+      await stripe.transfers.create({
+        amount: amount * 97.5, // amount in cents
+        currency: "gbp",
         destination: currentBank?.stripeExternalAccountId || "",
       });
-
-      console.log("Funds transferred to connected account:", transfer.id);
 
       // Implement a delay to allow transfer to process
       await new Promise((resolve) => setTimeout(resolve, 2000));
@@ -568,12 +384,13 @@ export const payoutToBank = async (
       });
     }
 
-    let currency = "USD";
+    console.log("reaced here");
+    let currency = "gbp";
     //create the stripe payout
     try {
       const payout = await stripe.payouts.create(
         {
-          amount: amount * 100, // amount in cents
+          amount: amount * 97.5, // amount in cents
           currency: currency,
         },
         {
@@ -586,6 +403,7 @@ export const payoutToBank = async (
         $inc: { credits: -amount },
       });
 
+      console.log("reaced here 2");
       await createTransaction({
         user: userId,
         amount: amount,
@@ -602,10 +420,9 @@ export const payoutToBank = async (
           : user.credits - amount,
       });
     } catch (error: any) {
-      console.log("Failed to create payout", error);
+      console.log("error", error);
       return res.status(400).json({
-        error: "Failed to create payout",
-        details: error.message,
+        error: error,
       });
     }
 
@@ -615,5 +432,79 @@ export const payoutToBank = async (
       return res.status(400).json({ error: error.message });
     }
     return res.status(500).json({ error: "Internal server error." });
+  }
+};
+
+/**
+ *  - API endpoint to remove a linked bank account for a user.
+ *
+ * @param req - Express request object
+ * @param res - Express response object
+ */
+export const removeBank = async (
+  req: express.Request,
+  res: express.Response
+) => {
+  try {
+    const stripe = getStripe();
+    const userId = (req as any).identity._id;
+
+    const { bankId } = req.params;
+
+    // Validate that bankId is provided
+    if (!bankId) {
+      return res.status(400).json({ error: "Bank ID is required." });
+    }
+
+    // Fetch the user with linked bank accounts
+    const user: any = await UserModel.findById(userId).populate({
+      path: "linkedBankAccounts",
+      select: "+stripeExternalAccountId +stripeBankAccountId",
+    });
+    if (!user) {
+      return res.status(404).json({ error: "User not found." });
+    }
+
+    // Find the bank account to remove
+    const bankAccount = user.linkedBankAccounts.find(
+      (bank: any) => bank._id.toString() === bankId
+    );
+    if (!bankAccount) {
+      return res.status(404).json({ error: "Bank account not found." });
+    }
+
+    // Remove the bank account from Stripe
+    if (bankAccount.stripeExternalAccountId) {
+      try {
+        await stripe.accounts.deleteExternalAccount(
+          bankAccount.stripeBankAccountId,
+          bankAccount.stripeExternalAccountId
+        );
+      } catch (stripeError: any) {
+        console.error("Stripe Error:", stripeError);
+        return res
+          .status(500)
+          .json({ error: "Failed to remove bank account from Stripe." });
+      }
+    } else {
+      console.warn("No Stripe External Account ID found for the bank account.");
+    }
+
+    // Remove the bank account from the BankModel
+    await BankModel.findByIdAndDelete(bankId);
+
+    // Remove the bank account reference from the user
+    user.linkedBankAccounts = user.linkedBankAccounts.filter(
+      (bank: any) => bank._id.toString() !== bankId
+    );
+
+    await user.save();
+
+    res.status(200).json({ message: "Bank account removed successfully." });
+  } catch (error: any) {
+    console.error("Error removing bank account:", error);
+    res
+      .status(500)
+      .json({ error: "An error occurred while removing the bank account." });
   }
 };

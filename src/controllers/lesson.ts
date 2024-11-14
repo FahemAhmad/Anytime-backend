@@ -85,10 +85,17 @@ export const getBookedLessonsOfuser = async (
         { path: "lessonId" },
         {
           path: "userId",
+          select:
+            "username firstName lastName _id email ratings ratedCount followers following university expertise introduction country ",
         },
-        { path: "tutorId" },
+        {
+          path: "tutorId",
+          select:
+            "username firstName lastName _id email ratings ratedCount followers following university expertise introduction country ",
+        },
       ],
     });
+
 
     return res.status(200).json({ data: user.bookings });
   } catch (err: any) {
