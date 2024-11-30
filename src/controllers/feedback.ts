@@ -5,15 +5,16 @@ import { FeedbackModel } from "../db/feedback";
 // Create a new feedback
 export const createFeedback = async (req: Request, res: Response) => {
   try {
-    const { user, type, message } = req.body;
+    const { type, message } = req.body;
 
     // Validate required fields
-    if (!user || !type || !message) {
+    if (!type || !message) {
       return res
         .status(400)
         .json({ error: "User, type, and message are required." });
     }
 
+    console.log("type", type);
     // Validate feedback type
     const validTypes = ["help", "feedback", "problem"];
     if (!validTypes.includes(type)) {
@@ -21,7 +22,11 @@ export const createFeedback = async (req: Request, res: Response) => {
     }
 
     // Create and save the feedback
-    const feedback = new FeedbackModel({ user, type, message });
+    const feedback = new FeedbackModel({
+      user: (req as any).identity._id,
+      type,
+      message,
+    });
     await feedback.save();
 
     res.status(201).json(feedback);
