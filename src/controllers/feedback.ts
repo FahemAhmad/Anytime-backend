@@ -14,7 +14,6 @@ export const createFeedback = async (req: Request, res: Response) => {
         .json({ error: "User, type, and message are required." });
     }
 
-    console.log("type", type);
     // Validate feedback type
     const validTypes = ["help", "feedback", "problem"];
     if (!validTypes.includes(type)) {
