@@ -14,6 +14,8 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@types/jsonwebtoken": "^9.0.7",
+    "@types/jwk-to-pem": "^2.0.3",
     "@types/node": "^22.8.1",
     "npm-run-all": "^4.1.5",
     "ts-node": "^10.9.2"
@@ -29,6 +31,7 @@
     "@types/morgan": "^1.9.9",
     "@types/nodemailer": "^6.4.14",
     "@types/uuid": "^9.0.8",
+    "axios": "^1.7.8",
     "body-parser": "^1.20.2",
     "bun": "^1.1.17",
     "compression": "^1.7.4",
@@ -37,6 +40,8 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.2",
+    "jwk-to-pem": "^2.0.7",
     "lodash": "^4.17.21",
     "moment": "^2.30.1",
     "mongoose": "^8.3.2",

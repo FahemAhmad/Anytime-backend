@@ -15,6 +15,7 @@ import {
   random,
 } from "../helpers";
 import { sendOTP } from "../helpers/mail";
+import jwt from "jsonwebtoken";
 
 export const register = async (req: express.Request, res: express.Response) => {
   try {
@@ -286,6 +287,8 @@ export const oauthLogin = async (
 
   let userinfoUrl;
 
+  const jwtToken = jwt.decode(token);
+  console.log("jwtToken", jwtToken);
   if (provider === "google") {
     userinfoUrl = "https://www.googleapis.com/userinfo/v2/me";
   } else if (provider === "fb") {
@@ -295,18 +298,23 @@ export const oauthLogin = async (
   }
 
   try {
-    const response = await fetch(userinfoUrl, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    let userData = undefined;
+    if (!jwtToken) {
+      const response = await fetch(userinfoUrl, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-    if (!response.ok) {
-      throw new Error("Failed to authenticate");
+      if (!response.ok) {
+        throw new Error("Failed to authenticate");
+      }
+      userData = await response.json();
+    } else {
+      userData = jwtToken as any;
     }
 
-    const userData = await response.json();
-
+    console.log("userData", userData);
     const existingUser = await getUsersByEmail(userData.email);
 
     if (!userData.email) {
@@ -351,7 +359,7 @@ export const oauthLogin = async (
 
       username = `${userName}${Date.now()}`;
       firstName = userData?.name;
-      avatarUrl = userData?.picture?.data?.url;
+      avatarUrl = userData?.picture?.data?.url || userData?.picture;
     }
 
     email = userData?.email;
