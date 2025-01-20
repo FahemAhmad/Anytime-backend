@@ -14,7 +14,7 @@ import {
   isOtpExpired,
   random,
 } from "../helpers";
-import { sendOTP } from "../helpers/mail";
+import { sendEmail, sendOTP } from "../helpers/mail";
 import jwt from "jsonwebtoken";
 
 export const register = async (req: express.Request, res: express.Response) => {
@@ -653,6 +653,8 @@ export const blockUser = async (
     const user = await UserModel.findById(userId);
     if (!user) return res.status(404).json({ message: "User not found" });
 
+    if (!user.status) user.isVerified = true;
+
     user.status = !user.status;
     await user.save();
 
@@ -690,5 +692,36 @@ export const deleteAdmin = async (
   } catch (err) {
     console.error("Error deleting admin:", err);
     return res.status(500).json({ message: "An error occurred" });
+  }
+};
+
+export const sendSupportEmail = async (
+  req: express.Request,
+  res: express.Response
+) => {
+  try {
+    const { email, message, name } = req.body;
+
+    if (!email || !message) {
+      return res.status(400).json({ message: "Invalid data" });
+    }
+
+    const text = `
+      Name: ${name}
+      Email: ${email}
+      Message: ${message}
+    `;
+
+    await sendEmail({
+      from: process.env.EMAIL_USERNAME!,
+      to: process.env.EMAIL_USERNAME!,
+      subject: `Support Email -- ${name}`,
+      text,
+    });
+
+    return res.status(200).json({ message: "Support email sent successfully" });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ message: "Internal server error" });
   }
 };

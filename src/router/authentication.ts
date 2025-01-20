@@ -14,6 +14,7 @@ import {
   verifyOTP,
   blockUser,
   deleteAdmin,
+  sendSupportEmail,
 } from "../controllers/authentication";
 import {
   authenticateAdmin,
@@ -30,6 +31,7 @@ export default (router: express.Router) => {
   router.put("/auth/update-password", updatePassword);
   router.post("/auth/providers/:providerName", oauthLogin);
   router.put("/auth/change-password", isAuthenticated, changePassword);
+  router.post("/auth/send-support-email", sendSupportEmail);
 
   // admin dashboard
   router.put(`/auth/block/:userId`, authenticateAdmin, blockUser);

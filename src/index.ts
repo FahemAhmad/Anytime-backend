@@ -18,7 +18,7 @@ app.use(
     credentials: true,
     origin:
       process.env.NODE_ENV === "production" && process.env.FRONTEND_URLS
-        ? process.env.FRONTEND_URLS.split(",")
+        ? [...process.env.FRONTEND_URLS.split(","), "http://localhost:3000"]
         : "http://localhost:3000",
     methods: "GET,PUT,POST,DELETE,PATCH",
     allowedHeaders: ["Content-Type", "Authorization"],
